@@ -46,6 +46,18 @@ export default function PatientDetail() {
   const { patient, risk_history, survey_responses, medications } = data
   const latestRisk = risk_history[0]
 
+  const getAge = (dob) => {
+    if (!dob) return '—'
+    const today = new Date()
+    const birthDate = new Date(dob)
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const m = today.getMonth() - birthDate.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    return age
+  }
+
   // Build trend data from survey responses
   const buildTrend = (type) => {
     return survey_responses.filter(s => s.response_answers?.length).flatMap(s =>
@@ -71,7 +83,7 @@ export default function PatientDetail() {
               <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{patient.full_name}</h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{patient.diagnosis || 'No diagnosis'}</p>
               <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 13, color: 'var(--text-muted)' }}>
-                <span>Age: {patient.date_of_birth || '—'}</span>
+                <span>Age: {getAge(patient.date_of_birth)}</span>
                 <span>Gender: {patient.gender || '—'}</span>
                 <span>Blood: {patient.blood_group || '—'}</span>
               </div>
