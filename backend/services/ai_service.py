@@ -1,7 +1,7 @@
 """
 Discharge+ — AI Service
 Groq API integration for survey scoring, report analysis, and patient feedback.
-Uses llama3-8b-8192 model (free tier).
+Uses llama-3.1-8b-instant model (free tier).
 """
 
 import json
@@ -12,7 +12,7 @@ settings = get_settings()
 
 client = Groq(api_key=settings.groq_api_key) if settings.groq_api_key else None
 
-MODEL = "llama3-8b-8192"
+MODEL = "llama-3.1-8b-instant"
 
 # ======================== PROMPT CONSTANTS ===================
 
@@ -24,13 +24,19 @@ Survey Answers:
 {answers_json}
 
 Evaluate based on these criteria:
-- Fever > 100.4°F (38°C) = concerning
-- SpO2 < 94% = concerning
-- Systolic BP > 140 or < 90 = concerning
-- Diastolic BP > 90 or < 60 = concerning
-- Blood sugar > 200 mg/dL or < 70 mg/dL = concerning
-- Pain level > 7/10 = concerning
-- Any wound photos showing redness, swelling, discharge = concerning
+- Fever: > 100.4°F (concerning), >= 103°F or <= 95°F (critical)
+- SpO2: < 94% (concerning), <= 90% (critical)
+- Systolic BP: > 140 or < 90 (concerning), >= 180 or <= 80 (critical)
+- Diastolic BP: > 90 or < 60 (concerning), >= 120 or <= 50 (critical)
+- Blood sugar: > 200 or < 70 (concerning), >= 300 or <= 50 (critical)
+- Pain level: 4-7/10 (concerning), 8-10/10 (critical)
+- Wound: Mild redness/swelling (concerning), Active discharge/infection (critical)
+
+CRITICAL SCORING RULES:
+1. If ALL parameters are normal, risk_level MUST be "low" (Score: 0-30).
+2. If ANY parameter is slightly out of normal range (concerning), risk_level MUST be at least "medium" (Score: 31-70).
+3. If ANY parameter is significantly out of range (critical), OR if MULTIPLE parameters are concerning, risk_level MUST be "high" (Score: 71-100).
+4. NEVER return "low" if ANY parameter is concerning or out of range. 
 
 Respond ONLY with valid JSON in this exact format:
 {{

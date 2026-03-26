@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Upload, FileText, Globe, Loader } from 'lucide-react'
+import Tesseract from 'tesseract.js'
 import Sidebar from '../../components/shared/Sidebar'
 import api from '../../lib/api'
 import useStore from '../../store/useStore'
@@ -20,9 +21,8 @@ export default function ReportAnalyzer() {
     setOcrLoading(true)
     setAnalysis(null)
     try {
-      // Client-side OCR with Tesseract.js (dynamic import)
-      const Tesseract = await import('tesseract.js')
-      const result = await Tesseract.recognize(f, 'eng', { logger: () => {} })
+      // Client-side OCR with Tesseract.js v7
+      const result = await Tesseract.recognize(f, 'eng')
       setOcrText(result.data.text)
     } catch (e) {
       console.error('OCR failed:', e)
@@ -90,13 +90,20 @@ export default function ReportAnalyzer() {
                 </div>
               )}
 
-              {ocrText && !ocrLoading && (
+              {!ocrLoading && (
                 <div className="glass-card" style={{ padding: 20 }}>
                   <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <FileText size={16} color="var(--accent)" /> Extracted Text
+                    <FileText size={16} color="var(--accent)" /> {ocrText ? 'Extracted Text' : 'Enter Report Text'}
                   </h3>
-                  <textarea className="input-field" rows={8} value={ocrText} onChange={(e) => setOcrText(e.target.value)} style={{ fontSize: 12, resize: 'vertical' }} />
-                  <button className="btn-primary" onClick={() => analyzeReport()} disabled={loading} style={{ width: '100%', marginTop: 12 }}>
+                  <textarea 
+                    className="input-field" 
+                    rows={8} 
+                    value={ocrText} 
+                    onChange={(e) => setOcrText(e.target.value)} 
+                    placeholder="Paste or type your medical report text here, or upload a document above..."
+                    style={{ fontSize: 12, resize: 'vertical' }} 
+                  />
+                  <button className="btn-primary" onClick={() => analyzeReport()} disabled={loading || !ocrText.trim()} style={{ width: '100%', marginTop: 12 }}>
                     {loading ? 'Analyzing...' : '🤖 Analyze with AI'}
                   </button>
                 </div>
