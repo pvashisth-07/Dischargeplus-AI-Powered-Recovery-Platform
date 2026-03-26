@@ -34,7 +34,10 @@ async def get_doctor_patients(
         .eq("is_active", True) \
         .execute()
 
-    patients = []
+    valid_assignments = []
+    patient_ids = []
+
+    # Pre-filter search and collect patient IDs
     for a in assignments.data or []:
         p = a.get("patients")
         if not p:
@@ -47,28 +50,41 @@ async def get_doctor_patients(
         if search and search.lower() not in patient_name.lower():
             continue
 
-        # Get latest risk score
-        risk = supabase.table("risk_scores") \
-            .select("*") \
-            .eq("patient_id", p["id"]) \
-            .order("created_at", desc=True) \
-            .limit(1) \
-            .execute()
+        valid_assignments.append(a)
+        patient_ids.append(p["id"])
 
-        risk_data = risk.data[0] if risk.data else None
+    # Bulk fetch risk scores mapping
+    latest_risks = {}
+    if patient_ids:
+        # Fetch ordered desc, the first we cache per patient is the latest
+        risks_res = supabase.table("risk_scores").select("*").in_("patient_id", patient_ids).order("created_at", desc=True).execute()
+        for r in risks_res.data or []:
+            pid = r["patient_id"]
+            if pid not in latest_risks:
+                latest_risks[pid] = r
+
+    # Bulk fetch survey mapping
+    latest_surveys = {}
+    if patient_ids:
+        surveys_res = supabase.table("survey_responses").select("patient_id, created_at").in_("patient_id", patient_ids).order("created_at", desc=True).execute()
+        for s in surveys_res.data or []:
+            pid = s["patient_id"]
+            if pid not in latest_surveys:
+                latest_surveys[pid] = str(s["created_at"])
+
+    # Build final list
+    patients = []
+    for a in valid_assignments:
+        p = a.get("patients")
+        user = p.get("users", {}) or {}
+        patient_name = user.get("full_name", "")
+
+        risk_data = latest_risks.get(p["id"])
         risk_level = risk_data["risk_level"] if risk_data else "low"
 
         # Risk filter
         if risk_filter and risk_level != risk_filter:
             continue
-
-        # Get latest survey response date
-        last_survey = supabase.table("survey_responses") \
-            .select("created_at") \
-            .eq("patient_id", p["id"]) \
-            .order("created_at", desc=True) \
-            .limit(1) \
-            .execute()
 
         patients.append({
             "id": p["id"],
@@ -80,7 +96,7 @@ async def get_doctor_patients(
             "expected_recovery_days": p.get("expected_recovery_days", 30),
             "risk_level": risk_level,
             "risk_score": risk_data.get("score") if risk_data else None,
-            "last_survey_date": str(last_survey.data[0]["created_at"]) if last_survey.data else None,
+            "last_survey_date": latest_surveys.get(p["id"]),
             "is_readmitted": p.get("is_readmitted", False),
             "comorbidities": p.get("comorbidities", []),
         })
