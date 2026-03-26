@@ -6,11 +6,11 @@ export default function TrendChart({ data, dataKey, title, color = '#00D4AA', no
       <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: 'var(--text-secondary)' }}>{title}</h4>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis dataKey="date" stroke="#5A6B7D" fontSize={10} tickFormatter={(v) => v?.slice(5) || v} />
-          <YAxis stroke="#5A6B7D" fontSize={10} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={10} tickFormatter={(v) => v?.slice(5) || v} />
+          <YAxis stroke="var(--text-secondary)" fontSize={10} />
           <Tooltip
-            contentStyle={{ background: '#1A2A44', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }}
+            contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--text-primary)' }}
             formatter={(v) => [`${v}${unit}`, title]}
           />
           {normalRange && (

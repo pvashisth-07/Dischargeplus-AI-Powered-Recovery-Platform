@@ -43,8 +43,8 @@ export default function AdminLogin() {
             <Activity size={28} color="var(--bg-primary)" />
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 700 }}>Welcome Back</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4 }}>
-            Sign in to your admin portal
+          <p style={{ color: 'var(--text-secondary)', fontSize: 18, fontWeight: 600, marginTop: 4 }}>
+            Admin
           </p>
         </div>
 
@@ -104,9 +104,9 @@ export default function AdminLogin() {
           <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
             New hospital? <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 600 }}>Register here</Link>
           </p>
-          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 12 }}>
-            <Link to="/doctor-login" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 12 }}>Doctor Login</Link>
-            <Link to="/patient-login" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 12 }}>Patient Login</Link>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 16 }}>
+            <Link to="/doctor-login" className="login-link-btn">Doctor Portal</Link>
+            <Link to="/patient-login" className="login-link-btn">Patient Portal</Link>
           </div>
         </div>
       </motion.div>

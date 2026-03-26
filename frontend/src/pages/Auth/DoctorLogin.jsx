@@ -28,8 +28,8 @@ export default function DoctorLogin() {
           <div style={{ width: 56, height: 56, borderRadius: 16, margin: '0 auto 16px', background: 'linear-gradient(135deg, #00B4D8, #0077B6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Stethoscope size={28} color="white" />
           </div>
-          <h1 style={{ fontSize: 24, fontWeight: 700 }}>Doctor Portal</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4 }}>Sign in with credentials from your admin</p>
+          <h1 style={{ fontSize: 24, fontWeight: 700 }}>Welcome Back</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 18, fontWeight: 600, marginTop: 4 }}>Doctor</p>
         </div>
         {error && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ background: 'rgba(255,71,87,0.1)', border: '1px solid rgba(255,71,87,0.3)', borderRadius: 10, padding: '10px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#FF4757' }}>
@@ -55,11 +55,10 @@ export default function DoctorLogin() {
             {loading ? 'Signing In...' : 'Sign In as Doctor'}
           </button>
         </form>
-        <p style={{ textAlign: 'center', marginTop: 20, color: 'var(--text-muted)', fontSize: 12 }}>
-          <Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>← Admin Login</Link>
-          {' · '}
-          <Link to="/patient-login" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Patient Login</Link>
-        </p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 24 }}>
+          <Link to="/login" className="login-link-btn">Admin Portal</Link>
+          <Link to="/patient-login" className="login-link-btn">Patient Portal</Link>
+        </div>
       </motion.div>
     </div>
   )

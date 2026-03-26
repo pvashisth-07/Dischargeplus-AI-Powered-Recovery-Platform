@@ -49,10 +49,10 @@ export default function Analytics() {
               </h3>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={surveyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="month" stroke="#5A6B7D" fontSize={11} />
-                  <YAxis stroke="#5A6B7D" fontSize={11} />
-                  <Tooltip contentStyle={{ background: '#1A2A44', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--text-secondary)" fontSize={11} />
+                  <YAxis stroke="var(--text-secondary)" fontSize={11} />
+                  <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--text-primary)' }} />
                   <Bar dataKey="completed" fill="#00D4AA" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="pending" fill="#FFA502" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -67,7 +67,7 @@ export default function Analytics() {
                   <Pie data={riskDist} cx="50%" cy="50%" innerRadius={55} outerRadius={85} dataKey="value" paddingAngle={3}>
                     {riskDist.map((e, i) => <Cell key={i} fill={e.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ background: '#1A2A44', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--text-primary)' }} />
                 </PieChart>
               </ResponsiveContainer>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8 }}>

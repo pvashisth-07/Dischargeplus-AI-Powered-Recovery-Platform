@@ -14,7 +14,7 @@ export default function RiskPie({ data }) {
           <Pie data={defaultData} cx="50%" cy="50%" innerRadius={50} outerRadius={78} dataKey="value" paddingAngle={3}>
             {defaultData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
           </Pie>
-          <Tooltip contentStyle={{ background: '#1A2A44', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} />
+          <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--text-primary)' }} />
         </PieChart>
       </ResponsiveContainer>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 4 }}>

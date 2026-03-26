@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import useStore from './store/useStore'
 
+// Landing
+import Landing from './pages/Landing'
+
 // Auth
 import AdminLogin from './pages/Auth/AdminLogin'
 import AdminRegister from './pages/Auth/AdminRegister'
@@ -74,7 +77,7 @@ function App() {
           <Route path="/patient/call" element={<ProtectedRoute allowedRoles={['patient']}><PatientCallRoom /></ProtectedRoute>} />
 
           {/* Default */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Landing />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AnimatePresence>

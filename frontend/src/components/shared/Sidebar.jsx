@@ -48,7 +48,7 @@ export default function Sidebar() {
       <button
         onClick={toggleSidebar}
         className="fixed top-4 left-4 z-50 p-2 rounded-lg md:hidden"
-        style={{ background: 'var(--bg-card)' }}
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
       >
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
@@ -63,7 +63,7 @@ export default function Sidebar() {
           top: 0,
           bottom: 0,
           width: 260,
-          background: 'var(--bg-card)',
+          background: '#FFFFFF',
           borderRight: '1px solid var(--border)',
           zIndex: 40,
           display: 'flex',
@@ -75,10 +75,10 @@ export default function Sidebar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px', marginBottom: 40 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10,
-            background: 'linear-gradient(135deg, var(--accent), #00B894)',
+            background: '#2563EB',
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
-            <Activity size={20} color="var(--bg-primary)" />
+            <Activity size={20} color="#FFFFFF" />
           </div>
           <span style={{ fontSize: 20, fontWeight: 700 }} className="gradient-text">Discharge+</span>
         </div>
@@ -121,7 +121,7 @@ export default function Sidebar() {
 
         {/* User info + logout */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: 'var(--text-primary)' }}>
             {user?.full_name || 'User'}
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
@@ -132,7 +132,7 @@ export default function Sidebar() {
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '10px 14px', borderRadius: 10, width: '100%',
-              background: 'rgba(255,71,87,0.1)', color: '#FF4757',
+              background: 'rgba(239,68,68,0.08)', color: '#EF4444',
               border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500,
               transition: 'all 0.2s ease',
             }}

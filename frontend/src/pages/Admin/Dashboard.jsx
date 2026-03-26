@@ -65,11 +65,11 @@ export default function AdminDashboard() {
               </h3>
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="day" stroke="#5A6B7D" fontSize={11} />
-                  <YAxis stroke="#5A6B7D" fontSize={11} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="day" stroke="var(--text-secondary)" fontSize={11} />
+                  <YAxis stroke="var(--text-secondary)" fontSize={11} />
                   <Tooltip
-                    contentStyle={{ background: '#1A2A44', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }}
+                    contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--text-primary)' }}
                   />
                   <Line type="monotone" dataKey="readmissions" stroke="#FF4757" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="discharges" stroke="#00D4AA" strokeWidth={2} dot={false} />
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ background: '#1A2A44', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--text-primary)' }} />
                 </PieChart>
               </ResponsiveContainer>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 8 }}>
