@@ -37,7 +37,7 @@ async def create_survey(
         raise HTTPException(status_code=404, detail="Doctor profile not found")
 
     # Verify patient belongs to hospital
-    patient = supabase.table("patients").select("id").eq("id", req.patient_id).eq("hospital_id", current_user.hospital_id).single().execute()
+    patient = supabase.table("patients").select("id, user_id").eq("id", req.patient_id).eq("hospital_id", current_user.hospital_id).single().execute()
     if not patient.data:
         raise HTTPException(status_code=404, detail="Patient not found in your hospital")
 
@@ -74,7 +74,7 @@ async def create_survey(
         # 3. Notify patient
         supabase.table("notifications").insert({
             "hospital_id": current_user.hospital_id,
-            "user_id": patient.data.get("user_id", ""),  # Need patient's user_id
+            "user_id": patient.data.get("user_id"),  # Need patient's user_id
             "title": "📋 New Health Survey",
             "message": f"Your doctor has sent you a new survey: {req.title}",
             "type": "info",
