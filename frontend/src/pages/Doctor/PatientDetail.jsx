@@ -96,12 +96,43 @@ export default function PatientDetail() {
             </div>
           </div>
 
+          {/* Latest Additional Responses */}
+          {(() => {
+            const latest = survey_responses.find(s => s.response_answers?.length > 0)
+            const extra = latest?.response_answers?.filter(a => ['photo', 'voice', 'custom_text'].includes(a.question_type))
+            if (!extra || extra.length === 0) return null
+            
+            return (
+              <div className="glass-card" style={{ padding: 20, marginBottom: 20 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <MessageSquare size={16} color="var(--accent)" /> Latest Patient Feedback
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 400, marginLeft: 'auto' }}>
+                    {new Date(latest.created_at).toLocaleDateString()}
+                  </span>
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+                  {extra.map(a => (
+                    <div key={a.id || a.question_type} style={{ background: 'var(--bg-primary)', padding: 16, borderRadius: 12 }}>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize', marginBottom: 8 }}>{a.question_type.replace('_', ' ')}</p>
+                      {a.question_type === 'custom_text' && <p style={{ fontSize: 14 }}>{a.answer_value}</p>}
+                      {a.question_type === 'photo' && a.file_url && <img src={a.file_url} alt="Patient upload" style={{ width: '100%', borderRadius: 8, maxHeight: 150, objectFit: 'cover' }} />}
+                      {a.question_type === 'photo' && !a.file_url && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{a.answer_value || 'No image'}</p>}
+                      {a.question_type === 'voice' && a.file_url && <audio src={a.file_url} controls style={{ width: '100%', height: 36 }} />}
+                      {a.question_type === 'voice' && !a.file_url && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No audio</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Trend Charts Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
             <TrendChart data={buildTrend('fever')} dataKey="value" title="Temperature (°F)" color="#FF6B6B" normalRange={[97, 99.5]} unit="°F" />
             <TrendChart data={buildTrend('spo2')} dataKey="value" title="SpO2 (%)" color="#00B4D8" normalRange={[95, 100]} unit="%" />
             <TrendChart data={buildTrend('bp')} dataKey="value" title="Blood Pressure (mmHg)" color="#FFA502" normalRange={[90, 140]} unit=" mmHg" />
             <TrendChart data={buildTrend('sugar')} dataKey="value" title="Blood Sugar (mg/dL)" color="#A29BFE" normalRange={[70, 140]} unit=" mg/dL" />
+            <TrendChart data={buildTrend('pain')} dataKey="value" title="Pain Level (0-10)" color="#FF4757" normalRange={[0, 3]} unit=" / 10" />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>

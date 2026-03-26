@@ -15,6 +15,8 @@ export default function Survey() {
   const [answers, setAnswers] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [feedback, setFeedback] = useState(null)
+  const [recording, setRecording] = useState(false)
+  const [mediaRecorder, setMediaRecorder] = useState(null)
 
   useEffect(() => {
     api.get('/patient/surveys/pending').then(res => {
@@ -95,14 +97,58 @@ export default function Survey() {
         return (
           <div>
             <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} /> Photo Upload</label>
-            <input type="file" accept="image/*" capture="environment" className="input-field" onChange={(e) => setAnswer(type, 'answer_value', e.target.files[0]?.name || '')} />
+            <input type="file" accept="image/*" capture="environment" className="input-field" onChange={(e) => {
+              const file = e.target.files[0]
+              if (file) {
+                const reader = new FileReader()
+                reader.onloadend = () => {
+                  setAnswer(type, 'file_url', reader.result)
+                  setAnswer(type, 'answer_value', file.name)
+                }
+                reader.readAsDataURL(file)
+              }
+            }} />
           </div>
         )
       case 'voice':
+        const startRecording = async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+            const recorder = new MediaRecorder(stream)
+            const chunks = []
+            recorder.ondataavailable = e => chunks.push(e.data)
+            recorder.onstop = () => {
+              const blob = new Blob(chunks, { type: 'audio/webm' })
+              const reader = new FileReader()
+              reader.onloadend = () => {
+                setAnswer(type, 'file_url', reader.result)
+                setAnswer(type, 'answer_value', 'Voice Note Recorded')
+              }
+              reader.readAsDataURL(blob)
+            }
+            recorder.start()
+            setMediaRecorder(recorder)
+            setRecording(true)
+          } catch (err) { alert('Microphone access denied') }
+        }
+        const stopRecording = () => {
+          mediaRecorder?.stop()
+          setRecording(false)
+          mediaRecorder?.stream.getTracks().forEach(t => t.stop())
+        }
         return (
           <div>
             <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} /> Voice Note</label>
-            <button type="button" className="btn-secondary" style={{ width: '100%' }}>🎙 Record Voice Note</button>
+            {!answers[type]?.file_url ? (
+              <button type="button" className="btn-secondary" style={{ width: '100%', background: recording ? '#FF4757' : '', color: recording ? 'white' : '' }} onClick={recording ? stopRecording : startRecording}>
+                {recording ? '⏹ Stop Recording' : '🎙 Record Voice Note'}
+              </button>
+            ) : (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <audio src={answers[type].file_url} controls style={{ flex: 1, height: 40 }} />
+                <button type="button" className="btn-secondary" onClick={() => setAnswer(type, 'file_url', null)}>Reset</button>
+              </div>
+            )}
           </div>
         )
       case 'custom_text':
