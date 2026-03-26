@@ -310,6 +310,14 @@ class JoinCallRequest(BaseModel):
 
 # ======================== MEDICATION =========================
 
+class CreateMedicationRequest(BaseModel):
+    patient_id: str
+    name: str
+    dosage: Optional[str] = None
+    frequency: Optional[str] = None
+    instructions: Optional[str] = None
+
+
 class MedicationResponse(BaseModel):
     id: str
     patient_id: str

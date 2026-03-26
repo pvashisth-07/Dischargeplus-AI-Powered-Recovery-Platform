@@ -6,7 +6,7 @@ Endpoints for doctor's patient list, patient detail, notes, and alerts.
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import List, Optional
 from dependencies import get_current_user, get_supabase_admin, CurrentUser, require_role
-from models.schemas import PatientResponse, RiskScoreResponse, DoctorNoteRequest, MessageResponse, NotificationResponse
+from models.schemas import PatientResponse, RiskScoreResponse, DoctorNoteRequest, MessageResponse, NotificationResponse, CreateMedicationRequest, MedicationResponse
 from supabase import Client
 
 router = APIRouter()
@@ -225,6 +225,42 @@ async def get_doctor_notes(
             notes = {}
 
     return {"notes": notes.get(patient_id, [])}
+
+
+@router.post("/medications", response_model=MedicationResponse)
+async def prescribe_medication(
+    req: CreateMedicationRequest,
+    current_user: CurrentUser = Depends(require_role("doctor")),
+    supabase: Client = Depends(get_supabase_admin),
+):
+    """Prescribe a new medication for a patient."""
+    doctor = supabase.table("doctors").select("id").eq("user_id", current_user.id).single().execute()
+    if not doctor.data:
+        raise HTTPException(status_code=404, detail="Doctor profile not found")
+
+    assignment = supabase.table("assignments") \
+        .select("id") \
+        .eq("doctor_id", doctor.data["id"]) \
+        .eq("patient_id", req.patient_id) \
+        .eq("is_active", True) \
+        .execute()
+
+    if not assignment.data:
+        raise HTTPException(status_code=403, detail="You are not assigned to this patient")
+
+    result = supabase.table("medications").insert({
+        "hospital_id": current_user.hospital_id,
+        "patient_id": req.patient_id,
+        "name": req.name,
+        "dosage": req.dosage,
+        "frequency": req.frequency,
+        "instructions": req.instructions,
+    }).execute()
+
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to prescribe medication")
+
+    return MedicationResponse(**result.data[0])
 
 
 @router.get("/alerts", response_model=List[NotificationResponse])

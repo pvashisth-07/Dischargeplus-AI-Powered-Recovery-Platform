@@ -15,6 +15,8 @@ export default function PatientDetail() {
   const [note, setNote] = useState('')
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [addingMed, setAddingMed] = useState(false)
+  const [medForm, setMedForm] = useState({ name: '', dosage: '', frequency: '', instructions: '' })
 
   useEffect(() => {
     const fetch = async () => {
@@ -38,6 +40,16 @@ export default function PatientDetail() {
       setNotes([...notes, { note, timestamp: new Date().toISOString() }])
       setNote('')
     } catch (e) { alert('Failed to save note') }
+  }
+
+  const saveMedication = async () => {
+    if (!medForm.name.trim()) return
+    try {
+      const res = await api.post('/doctor/medications', { patient_id: id, ...medForm })
+      setData(prev => ({ ...prev, medications: [...prev.medications, res.data] }))
+      setMedForm({ name: '', dosage: '', frequency: '', instructions: '' })
+      setAddingMed(false)
+    } catch (e) { alert('Failed to prescribe medication') }
   }
 
   if (loading) return <div className="page-container"><Sidebar /><main className="main-content"><p>Loading...</p></main></div>
@@ -138,16 +150,37 @@ export default function PatientDetail() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             {/* Medications */}
             <div className="glass-card" style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Pill size={16} color="var(--accent)" /> Medications
-              </h3>
-              {medications.map((m) => (
-                <div key={m.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                  <span style={{ fontWeight: 500 }}>{m.name}</span>
-                  <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{m.dosage} · {m.frequency}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Pill size={16} color="var(--accent)" /> Medications
+                </h3>
+                <button className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => setAddingMed(!addingMed)}>
+                  {addingMed ? 'Cancel' : '+ Prescribe'}
+                </button>
+              </div>
+
+              {addingMed && (
+                <div style={{ background: 'var(--bg-primary)', padding: 16, borderRadius: 12, marginBottom: 16 }}>
+                  <input className="input-field" placeholder="Medicine Name (e.g. Amoxicillin)" value={medForm.name} onChange={e => setMedForm({...medForm, name: e.target.value})} style={{ marginBottom: 10 }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                    <input className="input-field" placeholder="Dosage (e.g. 500mg)" value={medForm.dosage} onChange={e => setMedForm({...medForm, dosage: e.target.value})} />
+                    <input className="input-field" placeholder="Frequency (e.g. Twice daily)" value={medForm.frequency} onChange={e => setMedForm({...medForm, frequency: e.target.value})} />
+                  </div>
+                  <input className="input-field" placeholder="Instructions/Timings (e.g. After meals)" value={medForm.instructions} onChange={e => setMedForm({...medForm, instructions: e.target.value})} style={{ marginBottom: 10 }} />
+                  <button className="btn-primary" style={{ width: '100%' }} onClick={saveMedication}>Prescribe Medication</button>
                 </div>
-              ))}
-              {medications.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No medications</p>}
+              )}
+
+              <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                {medications.map((m) => (
+                  <div key={m.id} style={{ padding: '10px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+                    <span style={{ fontWeight: 500 }}>{m.name}</span>
+                    <span style={{ color: 'var(--text-muted)', marginLeft: 8 }}>{m.dosage} · {m.frequency}</span>
+                    {m.instructions && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{m.instructions}</div>}
+                  </div>
+                ))}
+                {medications.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No medications</p>}
+              </div>
             </div>
 
             {/* Doctor Notes */}
