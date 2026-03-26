@@ -34,6 +34,12 @@ class CallStatus(str, Enum):
     missed = "missed"
 
 
+class ComplaintStatus(str, Enum):
+    open = "open"
+    in_progress = "in_progress"
+    resolved = "resolved"
+
+
 # ======================== AUTH ===============================
 
 class AdminRegisterRequest(BaseModel):
@@ -348,6 +354,26 @@ class NotificationResponse(BaseModel):
     type: str = "info"
     is_read: bool = False
     link: Optional[str] = None
+    created_at: Optional[str] = None
+
+
+# ======================== COMPLAINTS =========================
+
+class CreateComplaintRequest(BaseModel):
+    subject: str
+    description: str
+    image_url: Optional[str] = None
+
+
+class ComplaintResponse(BaseModel):
+    id: str
+    hospital_id: str
+    patient_id: str
+    patient_name: Optional[str] = None
+    subject: str
+    description: str
+    image_url: Optional[str] = None
+    status: str
     created_at: Optional[str] = None
 
 

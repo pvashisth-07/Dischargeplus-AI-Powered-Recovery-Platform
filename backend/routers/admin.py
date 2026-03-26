@@ -11,7 +11,7 @@ from models.schemas import (
     CreateDoctorRequest, DoctorResponse, DoctorCredentials,
     CreatePatientRequest, PatientResponse, PatientCredentials,
     CreateAssignmentRequest, AssignmentResponse,
-    BulkImportResponse, MessageResponse,
+    BulkImportResponse, MessageResponse, ComplaintResponse, ComplaintStatus
 )
 from services.email_service import send_credential_email
 from utils.helpers import generate_password, parse_csv_patients, parse_csv_doctors
@@ -449,3 +449,57 @@ async def get_dashboard_stats(
         "readmission_count": readmissions.count or 0,
         "total_survey_responses": surveys.count or 0,
     }
+
+
+# ======================== COMPLAINTS =========================
+
+@router.get("/complaints", response_model=List[ComplaintResponse])
+async def list_complaints(
+    current_user: CurrentUser = Depends(require_role("admin")),
+    supabase: Client = Depends(get_supabase_admin),
+):
+    """List all complaints in the admin's hospital."""
+    result = supabase.table("complaints") \
+        .select("*, patients(user_id, users(full_name))") \
+        .eq("hospital_id", current_user.hospital_id) \
+        .order("created_at", desc=True) \
+        .execute()
+
+    complaints = []
+    for c in result.data or []:
+        patient_name = ""
+        if c.get("patients") and c["patients"].get("users"):
+            patient_name = c["patients"]["users"].get("full_name", "")
+
+        complaints.append(ComplaintResponse(
+            id=c["id"],
+            hospital_id=c["hospital_id"],
+            patient_id=c["patient_id"],
+            patient_name=patient_name,
+            subject=c["subject"],
+            description=c["description"],
+            image_url=c.get("image_url"),
+            status=c.get("status", "open"),
+            created_at=str(c.get("created_at", "")),
+        ))
+    return complaints
+
+
+@router.patch("/complaints/{complaint_id}/status", response_model=MessageResponse)
+async def update_complaint_status(
+    complaint_id: str,
+    status: ComplaintStatus,
+    current_user: CurrentUser = Depends(require_role("admin")),
+    supabase: Client = Depends(get_supabase_admin),
+):
+    """Update the status of a complaint."""
+    # Verify complaint belongs to this hospital
+    complaint = supabase.table("complaints").select("id").eq("id", complaint_id).eq("hospital_id", current_user.hospital_id).single().execute()
+    if not complaint.data:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+
+    supabase.table("complaints").update({
+        "status": status.value
+    }).eq("id", complaint_id).execute()
+
+    return MessageResponse(message=f"Complaint status updated to {status.value}")

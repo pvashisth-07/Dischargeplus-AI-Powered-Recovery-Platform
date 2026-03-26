@@ -3,11 +3,13 @@ Discharge+ — Patient Router
 Endpoints for patient self-service: profile, pending surveys, medication logging.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import List
 from dependencies import get_current_user, get_supabase_admin, CurrentUser, require_role
-from models.schemas import MedicationResponse, MedicationLogResponse, MessageResponse
+from models.schemas import MedicationResponse, MedicationLogResponse, MessageResponse, CreateComplaintRequest, ComplaintResponse
 from supabase import Client
+from typing import Optional
+import uuid
 
 router = APIRouter()
 
@@ -206,3 +208,90 @@ async def get_patient_notifications(
         .execute()
 
     return result.data or []
+
+
+# ======================== COMPLAINTS =========================
+
+@router.post("/complaints", response_model=ComplaintResponse)
+async def create_complaint(
+    subject: str = Form(...),
+    description: str = Form(...),
+    file: Optional[UploadFile] = File(None),
+    current_user: CurrentUser = Depends(require_role("patient")),
+    supabase: Client = Depends(get_supabase_admin),
+):
+    """Patient submits a new complaint."""
+    patient = supabase.table("patients").select("id").eq("user_id", current_user.id).single().execute()
+    if not patient.data:
+        raise HTTPException(status_code=404, detail="Patient profile not found")
+
+    image_url = None
+    if file:
+        try:
+            file_bytes = await file.read()
+            file_ext = file.filename.split('.')[-1]
+            file_name = f"complaints/{current_user.id}_{uuid.uuid4().hex}.{file_ext}"
+            
+            supabase.storage.from_("hospital-files").upload(
+                file_name,
+                file_bytes,
+                {"content-type": file.content_type}
+            )
+            image_url = supabase.storage.from_("hospital-files").get_public_url(file_name)
+        except Exception as e:
+            print(f"Failed to upload file: {e}")
+
+    result = supabase.table("complaints").insert({
+        "hospital_id": current_user.hospital_id,
+        "patient_id": patient.data["id"],
+        "subject": subject,
+        "description": description,
+        "image_url": image_url,
+        "status": "open",
+    }).execute()
+
+    if not result.data:
+        raise HTTPException(status_code=500, detail="Failed to create complaint")
+
+    c = result.data[0]
+    return ComplaintResponse(
+        id=c["id"],
+        hospital_id=c["hospital_id"],
+        patient_id=c["patient_id"],
+        subject=c["subject"],
+        description=c["description"],
+        image_url=c.get("image_url"),
+        status=c.get("status", "open"),
+        created_at=str(c.get("created_at", "")),
+    )
+
+
+@router.get("/complaints", response_model=List[ComplaintResponse])
+async def get_patient_complaints(
+    current_user: CurrentUser = Depends(require_role("patient")),
+    supabase: Client = Depends(get_supabase_admin),
+):
+    """Get all complaints submitted by the current patient."""
+    patient = supabase.table("patients").select("id").eq("user_id", current_user.id).single().execute()
+    if not patient.data:
+        raise HTTPException(status_code=404, detail="Patient profile not found")
+
+    result = supabase.table("complaints") \
+        .select("*") \
+        .eq("patient_id", patient.data["id"]) \
+        .order("created_at", desc=True) \
+        .execute()
+
+    return [
+        ComplaintResponse(
+            id=c["id"],
+            hospital_id=c["hospital_id"],
+            patient_id=c["patient_id"],
+            subject=c["subject"],
+            description=c["description"],
+            image_url=c.get("image_url"),
+            status=c.get("status", "open"),
+            created_at=str(c.get("created_at", "")),
+        )
+        for c in result.data or []
+    ]

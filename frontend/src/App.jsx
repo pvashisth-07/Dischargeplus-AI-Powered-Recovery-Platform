@@ -17,6 +17,7 @@ import Doctors from './pages/Admin/Doctors'
 import Patients from './pages/Admin/Patients'
 import Assignments from './pages/Admin/Assignments'
 import Analytics from './pages/Admin/Analytics'
+import AdminComplaints from './pages/Admin/Complaints'
 
 // Doctor
 import DoctorDashboard from './pages/Doctor/Dashboard'
@@ -32,6 +33,7 @@ import ReportAnalyzer from './pages/Patient/ReportAnalyzer'
 import Medications from './pages/Patient/Medications'
 import PatientChat from './pages/Patient/Chat'
 import PatientCallRoom from './pages/Patient/CallRoom'
+import PatientComplaint from './pages/Patient/Complaint'
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user } = useStore()
@@ -60,6 +62,7 @@ function App() {
           <Route path="/admin/patients" element={<ProtectedRoute allowedRoles={['admin']}><Patients /></ProtectedRoute>} />
           <Route path="/admin/assignments" element={<ProtectedRoute allowedRoles={['admin']}><Assignments /></ProtectedRoute>} />
           <Route path="/admin/analytics" element={<ProtectedRoute allowedRoles={['admin']}><Analytics /></ProtectedRoute>} />
+          <Route path="/admin/complaints" element={<ProtectedRoute allowedRoles={['admin']}><AdminComplaints /></ProtectedRoute>} />
 
           {/* Doctor */}
           <Route path="/doctor/dashboard" element={<ProtectedRoute allowedRoles={['doctor']}><DoctorDashboard /></ProtectedRoute>} />
@@ -75,6 +78,7 @@ function App() {
           <Route path="/patient/medications" element={<ProtectedRoute allowedRoles={['patient']}><Medications /></ProtectedRoute>} />
           <Route path="/patient/chat" element={<ProtectedRoute allowedRoles={['patient']}><PatientChat /></ProtectedRoute>} />
           <Route path="/patient/call" element={<ProtectedRoute allowedRoles={['patient']}><PatientCallRoom /></ProtectedRoute>} />
+          <Route path="/patient/complaints" element={<ProtectedRoute allowedRoles={['patient']}><PatientComplaint /></ProtectedRoute>} />
 
           {/* Default */}
           <Route path="/" element={<Landing />} />

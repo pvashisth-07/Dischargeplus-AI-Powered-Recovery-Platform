@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Users, UserPlus, GitBranch, BarChart3,
   Stethoscope, ClipboardList, MessageSquare, Video,
-  Heart, FileText, Pill, LogOut, Menu, X, Activity
+  Heart, FileText, Pill, LogOut, Menu, X, Activity, AlertCircle
 } from 'lucide-react'
 import useStore from '../../store/useStore'
 
@@ -14,6 +14,7 @@ const navItems = {
     { to: '/admin/patients', icon: Users, label: 'Patients' },
     { to: '/admin/assignments', icon: GitBranch, label: 'Assignments' },
     { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+    { to: '/admin/complaints', icon: AlertCircle, label: 'Complaints' },
   ],
   doctor: [
     { to: '/doctor/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -28,6 +29,7 @@ const navItems = {
     { to: '/patient/medications', icon: Pill, label: 'Medications' },
     { to: '/patient/chat', icon: MessageSquare, label: 'Chat' },
     { to: '/patient/call', icon: Video, label: 'Video Call' },
+    { to: '/patient/complaints', icon: AlertCircle, label: 'Complaints' },
   ],
 }
 
