@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion'
 
-export default function StatCard({ title, value, icon: Icon, trend, color = 'var(--accent)' }) {
+export default function StatCard({ title, value, icon: Icon, trend, color = 'var(--accent)', onClick }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="glass-card glass-card-hover"
-      style={{ padding: 24, position: 'relative', overflow: 'hidden' }}
+      style={{ padding: 24, position: 'relative', overflow: 'hidden', cursor: onClick ? 'pointer' : 'default' }}
+      onClick={onClick}
     >
       {/* Glow background */}
       <div style={{

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Users, Stethoscope, AlertTriangle, RotateCcw, TrendingUp } from 'lucide-react'
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
@@ -7,6 +8,7 @@ import StatCard from '../../components/shared/StatCard'
 import api from '../../lib/api'
 
 export default function AdminDashboard() {
+  const navigate = useNavigate()
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(true)
 
@@ -49,8 +51,8 @@ export default function AdminDashboard() {
 
           {/* Stats Grid */}
           <div className="stats-grid">
-            <StatCard title="Total Patients" value={stats.total_patients || 0} icon={Users} color="var(--accent)" trend={12} />
-            <StatCard title="Total Doctors" value={stats.total_doctors || 0} icon={Stethoscope} color="#00B4D8" />
+            <StatCard title="Total Patients" value={stats.total_patients || 0} icon={Users} color="var(--accent)" trend={12} onClick={() => navigate('/admin/patients')} />
+            <StatCard title="Total Doctors" value={stats.total_doctors || 0} icon={Stethoscope} color="#00B4D8" onClick={() => navigate('/admin/doctors')} />
             <StatCard title="High Risk" value={stats.high_risk_count || 0} icon={AlertTriangle} color="var(--risk-high)" trend={-5} />
             <StatCard title="Readmissions" value={stats.readmission_count || 0} icon={RotateCcw} color="var(--risk-medium)" />
           </div>
