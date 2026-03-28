@@ -21,7 +21,7 @@ router = APIRouter()
 # ======================== CHAT ===============================
 
 @router.get("/{patient_id}/history")
-async def get_chat_history(
+def get_chat_history(
     patient_id: str,
     page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=100),
@@ -60,7 +60,7 @@ async def get_chat_history(
 
 
 @router.post("/{patient_id}/message")
-async def send_message(
+def send_message(
     patient_id: str,
     req: SendMessageRequest,
     current_user: CurrentUser = Depends(get_current_user),
@@ -109,7 +109,7 @@ async def send_message(
 
 
 @router.post("/{patient_id}/mark-read")
-async def mark_messages_read(
+def mark_messages_read(
     patient_id: str,
     current_user: CurrentUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin),
@@ -128,7 +128,7 @@ async def mark_messages_read(
 # ======================== VIDEO CALLS ========================
 
 @router.post("/calls/create-room", response_model=CallRoomResponse)
-async def create_call_room(
+def create_call_room(
     req: CreateCallRoomRequest,
     current_user: CurrentUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin),
@@ -147,8 +147,8 @@ async def create_call_room(
 
     # Create room via 100ms API
     room_id = None
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
+    with httpx.Client() as client:
+        resp = client.post(
             "https://api.100ms.live/v2/rooms",
             headers={"Authorization": f"Bearer {mgmt_token}"},
             json={
@@ -196,7 +196,7 @@ async def create_call_room(
 
 
 @router.post("/calls/join-token", response_model=CallRoomResponse)
-async def get_join_token(
+def get_join_token(
     req: JoinCallRequest,
     current_user: CurrentUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin),
@@ -226,7 +226,7 @@ async def get_join_token(
 
 
 @router.post("/calls/{call_log_id}/end")
-async def end_call(
+def end_call(
     call_log_id: str,
     current_user: CurrentUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin),

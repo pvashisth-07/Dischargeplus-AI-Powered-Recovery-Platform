@@ -23,7 +23,7 @@ router = APIRouter()
 # ======================== DOCTORS ============================
 
 @router.get("/doctors", response_model=List[DoctorResponse])
-async def list_doctors(
+def list_doctors(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -56,7 +56,7 @@ async def list_doctors(
 
 
 @router.post("/doctors", response_model=DoctorCredentials)
-async def create_doctor(
+def create_doctor(
     req: CreateDoctorRequest,
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
@@ -122,7 +122,7 @@ async def create_doctor(
 
 
 @router.delete("/doctors/{doctor_id}", response_model=MessageResponse)
-async def delete_doctor(
+def delete_doctor(
     doctor_id: str,
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
@@ -140,7 +140,7 @@ async def delete_doctor(
 # ======================== PATIENTS ===========================
 
 @router.get("/patients", response_model=List[PatientResponse])
-async def list_patients(
+def list_patients(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -177,7 +177,7 @@ async def list_patients(
 
 
 @router.post("/patients", response_model=PatientCredentials)
-async def create_patient(
+def create_patient(
     req: CreatePatientRequest,
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
@@ -248,7 +248,7 @@ async def create_patient(
 
 
 @router.delete("/patients/{patient_id}", response_model=MessageResponse)
-async def delete_patient(
+def delete_patient(
     patient_id: str,
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
@@ -265,7 +265,7 @@ async def delete_patient(
 # ======================== BULK IMPORT ========================
 
 @router.post("/patients/bulk-import", response_model=BulkImportResponse)
-async def bulk_import_patients(
+def bulk_import_patients(
     file: UploadFile = File(...),
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
@@ -274,7 +274,7 @@ async def bulk_import_patients(
     if not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are accepted")
 
-    content = await file.read()
+    content = file.file.read()
     csv_text = content.decode("utf-8")
     patients_data = parse_csv_patients(csv_text)
 
@@ -341,7 +341,7 @@ async def bulk_import_patients(
 # ======================== ASSIGNMENTS ========================
 
 @router.get("/assignments", response_model=List[AssignmentResponse])
-async def list_assignments(
+def list_assignments(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -375,7 +375,7 @@ async def list_assignments(
 
 
 @router.post("/assignments", response_model=AssignmentResponse)
-async def create_assignment(
+def create_assignment(
     req: CreateAssignmentRequest,
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
@@ -416,7 +416,7 @@ async def create_assignment(
 
 
 @router.delete("/assignments/{assignment_id}", response_model=MessageResponse)
-async def delete_assignment(
+def delete_assignment(
     assignment_id: str,
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
@@ -429,7 +429,7 @@ async def delete_assignment(
 # ======================== DASHBOARD STATS ====================
 
 @router.get("/stats")
-async def get_dashboard_stats(
+def get_dashboard_stats(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -454,7 +454,7 @@ async def get_dashboard_stats(
 # ======================== COMPLAINTS =========================
 
 @router.get("/complaints", response_model=List[ComplaintResponse])
-async def list_complaints(
+def list_complaints(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -486,7 +486,7 @@ async def list_complaints(
 
 
 @router.patch("/complaints/{complaint_id}/status", response_model=MessageResponse)
-async def update_complaint_status(
+def update_complaint_status(
     complaint_id: str,
     status: ComplaintStatus,
     current_user: CurrentUser = Depends(require_role("admin")),

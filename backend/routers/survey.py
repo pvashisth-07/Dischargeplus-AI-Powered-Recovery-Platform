@@ -26,7 +26,7 @@ QUESTION_TYPE_MAP = {
 
 
 @router.post("/create", response_model=SurveyResponse)
-async def create_survey(
+def create_survey(
     req: CreateSurveyRequest,
     current_user: CurrentUser = Depends(require_role("doctor")),
     supabase: Client = Depends(get_supabase_admin),
@@ -103,7 +103,7 @@ async def create_survey(
 
 
 @router.get("/{patient_id}", response_model=List[SurveyResponse])
-async def get_patient_surveys(
+def get_patient_surveys(
     patient_id: str,
     current_user: CurrentUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin),
@@ -136,7 +136,7 @@ async def get_patient_surveys(
 
 
 @router.post("/{survey_id}/respond", response_model=SurveyResponseResult)
-async def submit_survey_response(
+def submit_survey_response(
     survey_id: str,
     req: SubmitSurveyResponseRequest,
     current_user: CurrentUser = Depends(require_role("patient")),
@@ -170,21 +170,25 @@ async def submit_survey_response(
 
         # 2. Insert individual answers
         answers_for_ai = []
+        inserts = []
         for answer in req.answers:
-            supabase.table("response_answers").insert({
+            inserts.append({
                 "response_id": response_id,
                 "hospital_id": current_user.hospital_id,
                 "question_type": answer.question_type,
                 "answer_value": answer.answer_value,
                 "answer_numeric": answer.answer_numeric,
                 "file_url": answer.file_url,
-            }).execute()
+            })
 
             answers_for_ai.append({
                 "question_type": answer.question_type,
                 "answer_value": answer.answer_value,
                 "answer_numeric": answer.answer_numeric,
             })
+            
+        if inserts:
+            supabase.table("response_answers").insert(inserts).execute()
 
         # 3. Mark survey as completed
         supabase.table("surveys").update({"is_completed": True}).eq("id", survey_id).execute()

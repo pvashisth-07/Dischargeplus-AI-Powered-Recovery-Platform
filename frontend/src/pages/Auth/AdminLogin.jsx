@@ -35,13 +35,7 @@ export default function AdminLogin() {
       >
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 16, margin: '0 auto 16px',
-            background: 'linear-gradient(135deg, var(--accent), #00B894)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Activity size={28} color="var(--bg-primary)" />
-          </div>
+          <img src="/hospital.jpg" alt="Admin Logo" style={{ width: 72, height: 72, borderRadius: 16, margin: '0 auto 16px', display: 'block', objectFit: 'cover' }} />
           <h1 style={{ fontSize: 24, fontWeight: 700 }}>Welcome Back</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: 18, fontWeight: 600, marginTop: 4 }}>
             Admin

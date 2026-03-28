@@ -68,13 +68,7 @@ export default function AdminRegister() {
         style={{ width: '100%', maxWidth: 540, padding: 40, maxHeight: '90vh', overflowY: 'auto' }}
       >
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 16, margin: '0 auto 16px',
-            background: 'linear-gradient(135deg, var(--accent), #00B894)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Activity size={28} color="var(--bg-primary)" />
-          </div>
+          <img src="/hospital.jpg" alt="Hospital Logo" style={{ width: 72, height: 72, borderRadius: 16, margin: '0 auto 16px', display: 'block', objectFit: 'cover' }} />
           <h1 style={{ fontSize: 24, fontWeight: 700 }}>Create Hospital Account</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 4 }}>
             Register your hospital on Discharge+

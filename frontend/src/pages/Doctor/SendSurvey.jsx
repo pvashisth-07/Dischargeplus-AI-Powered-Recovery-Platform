@@ -9,8 +9,7 @@ const QUESTION_TYPES = [
   { id: 'spo2', label: 'SpO2', desc: 'Oxygen saturation percentage' },
   { id: 'bp', label: 'Blood Pressure', desc: 'Systolic / Diastolic reading' },
   { id: 'sugar', label: 'Blood Sugar', desc: 'Blood glucose in mg/dL' },
-  { id: 'pain', label: 'Pain Level', desc: 'Pain slider 0-10' },
-  { id: 'photo', label: 'Photo Upload', desc: 'Wound or affected area photo' },
+  { id: 'photo', label: 'Photo / Video Upload', desc: 'Wound or affected area media' },
   { id: 'voice', label: 'Voice Note', desc: 'Audio recording of symptoms' },
   { id: 'custom_text', label: 'Custom Text', desc: 'Free-text response' },
 ]

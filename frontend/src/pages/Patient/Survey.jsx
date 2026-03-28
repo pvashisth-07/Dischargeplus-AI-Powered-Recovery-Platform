@@ -5,7 +5,7 @@ import { Send, CheckCircle, Thermometer, Droplets, Heart, Activity, Camera, Mic,
 import Sidebar from '../../components/shared/Sidebar'
 import api from '../../lib/api'
 
-const ICONS = { fever: Thermometer, spo2: Droplets, bp: Heart, sugar: Activity, pain: Activity, photo: Camera, voice: Mic, custom_text: FileText }
+const ICONS = { fever: Thermometer, spo2: Droplets, bp: Heart, sugar: Activity, photo: Camera, voice: Mic, custom_text: FileText }
 
 export default function Survey() {
   const [searchParams] = useSearchParams()
@@ -82,32 +82,62 @@ export default function Survey() {
             <input className="input-field" type="number" placeholder="110" onChange={(e) => setAnswer(type, 'answer_numeric', parseFloat(e.target.value))} />
           </div>
         )
-      case 'pain':
-        return (
-          <div>
-            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} /> Pain Level: {answers[type]?.answer_numeric || 0}/10</label>
-            <input type="range" min="0" max="10" value={answers[type]?.answer_numeric || 0} onChange={(e) => setAnswer(type, 'answer_numeric', parseInt(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--accent)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)' }}>
-              <span>No pain</span><span>Worst pain</span>
-            </div>
-          </div>
-        )
+
       case 'photo':
         return (
           <div>
-            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} /> Photo Upload</label>
-            <input type="file" accept="image/*" capture="environment" className="input-field" onChange={(e) => {
-              const file = e.target.files[0]
-              if (file) {
-                const reader = new FileReader()
-                reader.onloadend = () => {
-                  setAnswer(type, 'file_url', reader.result)
-                  setAnswer(type, 'answer_value', file.name)
+            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon size={14} /> Photo / Video Upload</label>
+            {!answers[type]?.file_url ? (
+              <input type="file" accept="image/*,video/*" capture="environment" className="input-field" onChange={(e) => {
+                const file = e.target.files[0]
+                if (file) {
+                  if (file.type.startsWith('image/')) {
+                    const reader = new FileReader()
+                    reader.onload = (event) => {
+                      const img = new Image()
+                      img.onload = () => {
+                        const canvas = document.createElement('canvas')
+                        const MAX_WIDTH = 800
+                        let width = img.width
+                        let height = img.height
+                        if (width > MAX_WIDTH) {
+                          height = Math.round((height * MAX_WIDTH) / width)
+                          width = MAX_WIDTH
+                        }
+                        canvas.width = width
+                        canvas.height = height
+                        const ctx = canvas.getContext('2d')
+                        ctx.drawImage(img, 0, 0, width, height)
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7)
+                        setAnswer(type, 'file_url', compressedDataUrl)
+                        setAnswer(type, 'answer_value', file.name)
+                      }
+                      img.src = event.target.result
+                    }
+                    reader.readAsDataURL(file)
+                  } else {
+                    const reader = new FileReader()
+                    reader.onloadend = () => {
+                      setAnswer(type, 'file_url', reader.result)
+                      setAnswer(type, 'answer_value', file.name)
+                    }
+                    reader.readAsDataURL(file)
+                  }
                 }
-                reader.readAsDataURL(file)
-              }
-            }} />
+              }} />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+                {answers[type].file_url.startsWith('data:video/') ? (
+                  <video src={answers[type].file_url} controls style={{ width: '100%', borderRadius: 8, maxHeight: 200, background: '#000' }} />
+                ) : (
+                  <img src={answers[type].file_url} alt="Preview" style={{ width: '100%', borderRadius: 8, maxHeight: 200, objectFit: 'cover' }} />
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{answers[type].answer_value}</span>
+                  <button type="button" className="btn-secondary" onClick={() => { setAnswer(type, 'file_url', null); setAnswer(type, 'answer_value', null); }}>Remove</button>
+                </div>
+              </div>
+            )}
           </div>
         )
       case 'voice':

@@ -15,7 +15,7 @@ router = APIRouter()
 
 
 @router.get("/me")
-async def get_patient_profile(
+def get_patient_profile(
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -81,7 +81,7 @@ async def get_patient_profile(
 
 
 @router.get("/surveys/pending")
-async def get_pending_surveys(
+def get_pending_surveys(
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -101,7 +101,7 @@ async def get_pending_surveys(
 
 
 @router.get("/medications", response_model=List[MedicationResponse])
-async def get_medications(
+def get_medications(
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -135,7 +135,7 @@ async def get_medications(
 
 
 @router.post("/medications/{medication_id}/log", response_model=MessageResponse)
-async def log_medication(
+def log_medication(
     medication_id: str,
     status: str = "taken",  # 'taken' or 'missed'
     notes: str = None,
@@ -164,7 +164,7 @@ async def log_medication(
 
 
 @router.get("/medications/{medication_id}/logs", response_model=List[MedicationLogResponse])
-async def get_medication_logs(
+def get_medication_logs(
     medication_id: str,
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
@@ -195,7 +195,7 @@ async def get_medication_logs(
 
 
 @router.get("/notifications")
-async def get_patient_notifications(
+def get_patient_notifications(
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -213,7 +213,7 @@ async def get_patient_notifications(
 # ======================== COMPLAINTS =========================
 
 @router.post("/complaints", response_model=ComplaintResponse)
-async def create_complaint(
+def create_complaint(
     subject: str = Form(...),
     description: str = Form(...),
     file: Optional[UploadFile] = File(None),
@@ -228,7 +228,7 @@ async def create_complaint(
     image_url = None
     if file:
         try:
-            file_bytes = await file.read()
+            file_bytes = file.file.read()
             file_ext = file.filename.split('.')[-1]
             file_name = f"complaints/{current_user.id}_{uuid.uuid4().hex}.{file_ext}"
             
@@ -267,7 +267,7 @@ async def create_complaint(
 
 
 @router.get("/complaints", response_model=List[ComplaintResponse])
-async def get_patient_complaints(
+def get_patient_complaints(
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
 ):
