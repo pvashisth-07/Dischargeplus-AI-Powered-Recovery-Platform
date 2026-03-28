@@ -127,9 +127,8 @@ export default function PatientDetail() {
                     <div key={a.id || a.question_type} style={{ background: 'var(--bg-primary)', padding: 16, borderRadius: 12 }}>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize', marginBottom: 8 }}>{a.question_type.replace('_', ' ')}</p>
                       {a.question_type === 'custom_text' && <p style={{ fontSize: 14 }}>{a.answer_value}</p>}
-                      {a.question_type === 'photo' && a.file_url && a.file_url.startsWith('data:video/') && <video src={a.file_url} controls style={{ width: '100%', borderRadius: 8, maxHeight: 150 }} />}
-                      {a.question_type === 'photo' && a.file_url && !a.file_url.startsWith('data:video/') && <img src={a.file_url} alt="Patient upload" style={{ width: '100%', borderRadius: 8, maxHeight: 150, objectFit: 'cover' }} />}
-                      {a.question_type === 'photo' && !a.file_url && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{a.answer_value || 'No media'}</p>}
+                      {a.question_type === 'photo' && a.file_url && <img src={a.file_url} alt="Patient upload" style={{ width: '100%', borderRadius: 8, maxHeight: 150, objectFit: 'cover' }} />}
+                      {a.question_type === 'photo' && !a.file_url && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{a.answer_value || 'No image'}</p>}
                       {a.question_type === 'voice' && a.file_url && <audio src={a.file_url} controls style={{ width: '100%', height: 36 }} />}
                       {a.question_type === 'voice' && !a.file_url && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No audio</p>}
                     </div>
@@ -145,6 +144,7 @@ export default function PatientDetail() {
             <TrendChart data={buildTrend('spo2')} dataKey="value" title="SpO2 (%)" color="#00B4D8" normalRange={[95, 100]} unit="%" />
             <TrendChart data={buildTrend('bp')} dataKey="value" title="Blood Pressure (mmHg)" color="#FFA502" normalRange={[90, 140]} unit=" mmHg" />
             <TrendChart data={buildTrend('sugar')} dataKey="value" title="Blood Sugar (mg/dL)" color="#A29BFE" normalRange={[70, 140]} unit=" mg/dL" />
+            <TrendChart data={buildTrend('pain')} dataKey="value" title="Pain Level (0-10)" color="#FF4757" normalRange={[0, 3]} unit=" / 10" />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>

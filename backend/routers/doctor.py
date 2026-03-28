@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.get("/patients", response_model=List[dict])
-def get_doctor_patients(
+async def get_doctor_patients(
     risk_filter: Optional[str] = Query(None, description="Filter by risk level: high, medium, low"),
     search: Optional[str] = Query(None, description="Search by patient name"),
     current_user: CurrentUser = Depends(require_role("doctor")),
@@ -105,7 +105,7 @@ def get_doctor_patients(
 
 
 @router.get("/patients/{patient_id}", response_model=dict)
-def get_patient_detail(
+async def get_patient_detail(
     patient_id: str,
     current_user: CurrentUser = Depends(require_role("doctor")),
     supabase: Client = Depends(get_supabase_admin),
@@ -187,7 +187,7 @@ def get_patient_detail(
 
 
 @router.post("/notes", response_model=MessageResponse)
-def save_doctor_note(
+async def save_doctor_note(
     req: DoctorNoteRequest,
     current_user: CurrentUser = Depends(require_role("doctor")),
     supabase: Client = Depends(get_supabase_admin),
@@ -222,7 +222,7 @@ def save_doctor_note(
 
 
 @router.get("/notes/{patient_id}")
-def get_doctor_notes(
+async def get_doctor_notes(
     patient_id: str,
     current_user: CurrentUser = Depends(require_role("doctor")),
     supabase: Client = Depends(get_supabase_admin),
@@ -244,7 +244,7 @@ def get_doctor_notes(
 
 
 @router.post("/medications", response_model=MedicationResponse)
-def prescribe_medication(
+async def prescribe_medication(
     req: CreateMedicationRequest,
     current_user: CurrentUser = Depends(require_role("doctor")),
     supabase: Client = Depends(get_supabase_admin),
@@ -280,7 +280,7 @@ def prescribe_medication(
 
 
 @router.get("/alerts", response_model=List[NotificationResponse])
-def get_doctor_alerts(
+async def get_doctor_alerts(
     current_user: CurrentUser = Depends(require_role("doctor")),
     supabase: Client = Depends(get_supabase_admin),
 ):

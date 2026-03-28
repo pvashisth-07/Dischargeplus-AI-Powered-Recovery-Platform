@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.post("/admin-register", response_model=AuthResponse)
-def admin_register(
+async def admin_register(
     req: AdminRegisterRequest,
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -90,7 +90,7 @@ def admin_register(
 
 
 @router.post("/login", response_model=AuthResponse)
-def login(
+async def login(
     req: LoginRequest,
     supabase: Client = Depends(get_supabase_admin),
 ):

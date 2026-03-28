@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.post("/analyze-report", response_model=ReportAnalysisResponse)
-def analyze_medical_report(
+async def analyze_medical_report(
     req: AnalyzeReportRequest,
     current_user: CurrentUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin),
@@ -69,7 +69,7 @@ def analyze_medical_report(
 
 
 @router.get("/risk/{patient_id}", response_model=RiskScoreResponse)
-def get_latest_risk_score(
+async def get_latest_risk_score(
     patient_id: str,
     current_user: CurrentUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin),
