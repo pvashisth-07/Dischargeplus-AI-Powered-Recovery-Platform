@@ -156,8 +156,8 @@ Open [http://localhost:5173](http://localhost:5173)
 ```bash
 docker-compose up --build -d
 ```
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- Backend: [http://localhost:8000](http://localhost:8000)
+- Frontend: [https://discharge-plus-ai-powered-recovery.vercel.app/](https://discharge-plus-ai-powered-recovery.vercel.app/)
+- Backend: [https://dischargeplus-ai-powered-recovery-gziu.onrender.com/](https://dischargeplus-ai-powered-recovery-gziu.onrender.com/)
 
 ---
 
