@@ -75,13 +75,7 @@ export default function Sidebar() {
       >
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px', marginBottom: 40 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: '#2563EB',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <Activity size={20} color="#FFFFFF" />
-          </div>
+          <img src="/hospital.jpg" alt="Discharge+ Logo" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover' }} />
           <span style={{ fontSize: 20, fontWeight: 700 }} className="gradient-text">Discharge+</span>
         </div>
 

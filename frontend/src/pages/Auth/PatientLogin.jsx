@@ -25,9 +25,7 @@ export default function PatientLogin() {
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
         className="glass-card" style={{ width: '100%', maxWidth: 440, padding: 40 }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, margin: '0 auto 16px', background: 'linear-gradient(135deg, #FF6B6B, #EE5A24)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Heart size={28} color="white" />
-          </div>
+          <img src="/patient.jpg" alt="Patient Logo" style={{ width: 72, height: 72, borderRadius: 16, margin: '0 auto 16px', display: 'block', objectFit: 'cover' }} />
           <h1 style={{ fontSize: 24, fontWeight: 700 }}>Welcome Back</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: 18, fontWeight: 600, marginTop: 4 }}>Patient</p>
         </div>

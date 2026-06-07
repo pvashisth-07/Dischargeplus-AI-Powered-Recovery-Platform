@@ -127,8 +127,9 @@ export default function PatientDetail() {
                     <div key={a.id || a.question_type} style={{ background: 'var(--bg-primary)', padding: 16, borderRadius: 12 }}>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize', marginBottom: 8 }}>{a.question_type.replace('_', ' ')}</p>
                       {a.question_type === 'custom_text' && <p style={{ fontSize: 14 }}>{a.answer_value}</p>}
-                      {a.question_type === 'photo' && a.file_url && <img src={a.file_url} alt="Patient upload" style={{ width: '100%', borderRadius: 8, maxHeight: 150, objectFit: 'cover' }} />}
-                      {a.question_type === 'photo' && !a.file_url && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{a.answer_value || 'No image'}</p>}
+                      {a.question_type === 'photo' && a.file_url && a.file_url.startsWith('data:video/') && <video src={a.file_url} controls style={{ width: '100%', borderRadius: 8, maxHeight: 150 }} />}
+                      {a.question_type === 'photo' && a.file_url && !a.file_url.startsWith('data:video/') && <img src={a.file_url} alt="Patient upload" style={{ width: '100%', borderRadius: 8, maxHeight: 150, objectFit: 'cover' }} />}
+                      {a.question_type === 'photo' && !a.file_url && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{a.answer_value || 'No media'}</p>}
                       {a.question_type === 'voice' && a.file_url && <audio src={a.file_url} controls style={{ width: '100%', height: 36 }} />}
                       {a.question_type === 'voice' && !a.file_url && <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No audio</p>}
                     </div>
