@@ -1,28 +1,3 @@
----
-name: ML Integration Plan
-overview: Transform Discharge+ from a prompt-only LLM wrapper into a practical ML-powered SaaS by adding trained scikit-learn/XGBoost models for disease-aware survey recommendations, patient history analysis, and hybrid risk scoring—targeting ~25% of core product value from real ML inference.
-todos:
-  - id: ml-foundation
-    content: "Create backend/ml/ package: feature_engineering.py, model loaders, training scripts, and routers/ml.py"
-    status: pending
-  - id: survey-recommender
-    content: Build disease-aware survey recommender (XGBoost multi-label) + wire into SendSurvey.jsx
-    status: pending
-  - id: patient-insights
-    content: Build readmission predictor + vital anomaly detector + ML Insights panel on PatientDetail.jsx
-    status: pending
-  - id: hybrid-risk
-    content: Replace LLM-only risk scoring in risk_service.py with XGBoost classifier + Groq explanation layer
-    status: pending
-  - id: adherence-ml
-    content: Add medication adherence predictor and patient/doctor alert UI
-    status: pending
-  - id: evaluation
-    content: Add evaluation notebook with metrics, SHAP plots, and model metadata.json for demo
-    status: pending
-isProject: false
----
-
 # ML Integration Plan for Discharge+ 
 
 ## Current State (The Gap)
