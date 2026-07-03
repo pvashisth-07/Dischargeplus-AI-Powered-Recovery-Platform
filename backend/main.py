@@ -19,9 +19,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         settings.frontend_url,
+        "https://dischargeplusai-poweredrecoveryplat.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://discharge-plus-ai-powered-recovery.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],

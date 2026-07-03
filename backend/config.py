@@ -32,8 +32,8 @@ class Settings(BaseSettings):
 
     # App
     app_name: str = "Discharge+"
-    frontend_url: str = "http://localhost:5173"
-    backend_url: str = "http://localhost:8000"
+    frontend_url: str = "https://dischargeplusai-poweredrecoveryplat.vercel.app"
+    backend_url: str = "https://dischargeplus-ai-powered-recovery.onrender.com"
     environment: str = "development"
 
     class Config:
