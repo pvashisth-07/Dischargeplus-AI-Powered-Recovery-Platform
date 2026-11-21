@@ -1,10 +1,15 @@
 """
 Discharge+ — Risk Service
-Reads survey responses, calls AI service, writes risk scores, sends alerts.
+Hybrid risk scoring:
+1. Calculates risk tier, numeric score, and structured factors using ML (XGBoost + Clinical safety floor)
+2. Persists validated structured risk score to database
+3. Calls Groq AI strictly for empathetic patient feedback and natural language reasoning
+4. Sends real-time notifications to assigned doctors if risk is high
 """
 
 from dependencies import get_supabase_admin
-from services.ai_service import score_survey_response, generate_patient_feedback
+from ml.risk_classifier import classify_survey_risk
+from services.ai_service import generate_patient_feedback
 
 
 def calculate_and_store_risk(
@@ -15,36 +20,49 @@ def calculate_and_store_risk(
 ) -> dict:
     """
     Calculate risk score for a survey response:
-    1. Call AI service to score the answers
-    2. Update the risk_scores record (created by trigger)
-    3. Generate patient feedback
+    1. Score answers via XGBoost hybrid risk classifier with clinical safety floor
+    2. Update the risk_scores record
+    3. Generate patient feedback via Groq
     4. Send notification if high risk
     Returns the risk result dict.
     """
     supabase = get_supabase_admin()
 
-    # 1. Score via AI
-    risk_result = score_survey_response(answers)
+    # 1. Score via ML Hybrid Classifier (XGBoost + Clinical safety floor)
+    risk_result = classify_survey_risk(answers)
 
     # 2. Update the risk score record created by the DB trigger
-    supabase.table("risk_scores").update({
-        "risk_level": risk_result.get("risk_level", "low"),
-        "score": risk_result.get("score", 0),
-        "reasoning": risk_result.get("reasoning", ""),
-        "factors": risk_result.get("factors", {}),
-    }).eq("survey_response_id", survey_response_id).execute()
+    try:
+        supabase.table("risk_scores").update({
+            "risk_level": risk_result.get("risk_level", "low"),
+            "score": risk_result.get("score", 0),
+            "reasoning": risk_result.get("reasoning", ""),
+            "factors": risk_result.get("factors", {}),
+        }).eq("survey_response_id", survey_response_id).execute()
+    except Exception as e:
+        print(f"⚠️ Failed to update risk_scores: {e}")
 
-    # 3. Generate patient feedback
-    feedback = generate_patient_feedback(answers, risk_result)
+    # 3. Generate empathetic patient feedback via Groq (LLM only for natural language)
+    feedback = "Thank you for completing your health check-in! Your responses have been recorded and shared with your doctor."
+    try:
+        feedback = generate_patient_feedback(answers, risk_result)
+    except Exception as e:
+        print(f"⚠️ Feedback generation failed, using fallback: {e}")
 
     # 4. Update survey response with feedback
-    supabase.table("survey_responses").update({
-        "ai_feedback": feedback,
-    }).eq("id", survey_response_id).execute()
+    try:
+        supabase.table("survey_responses").update({
+            "ai_feedback": feedback,
+        }).eq("id", survey_response_id).execute()
+    except Exception as e:
+        print(f"⚠️ Failed to update survey_response feedback: {e}")
 
     # 5. If high risk, create notification for assigned doctors
     if risk_result.get("risk_level") == "high":
-        _notify_high_risk(patient_id, hospital_id, risk_result)
+        try:
+            _notify_high_risk(patient_id, hospital_id, risk_result)
+        except Exception as e:
+            print(f"⚠️ High-risk notification failed: {e}")
 
     return {
         "risk_level": risk_result.get("risk_level"),

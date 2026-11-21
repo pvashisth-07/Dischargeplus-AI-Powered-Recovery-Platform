@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ClipboardList, Send, Eye } from 'lucide-react'
+import { ClipboardList, Send, Eye, Sparkles, RefreshCw } from 'lucide-react'
 import Sidebar from '../../components/shared/Sidebar'
 import api from '../../lib/api'
 
@@ -26,10 +26,37 @@ export default function SendSurvey() {
   const [sending, setSending] = useState(false)
   const [preview, setPreview] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [mlRecs, setMlRecs] = useState(null)
+  const [loadingRecs, setLoadingRecs] = useState(false)
 
   useEffect(() => {
     api.get('/doctor/patients').then(res => setPatients(res.data)).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (!selectedPatient) {
+      setMlRecs(null)
+      return
+    }
+    setLoadingRecs(true)
+    api.get('/ml/survey-recommendations', { params: { patient_id: selectedPatient } })
+      .then(res => {
+        setMlRecs(res.data)
+        if (res.data?.recommendations) {
+          const autoSelected = res.data.recommendations.filter(r => r.selected).map(r => r.id)
+          setSelectedTypes(autoSelected)
+        }
+      })
+      .catch(err => console.warn('ML recommendations fetch failed:', err))
+      .finally(() => setLoadingRecs(false))
+  }, [selectedPatient])
+
+  const applyMlSuggestions = () => {
+    if (mlRecs?.recommendations) {
+      const autoSelected = mlRecs.recommendations.filter(r => r.selected).map(r => r.id)
+      setSelectedTypes(autoSelected)
+    }
+  }
 
   const toggleType = (id) => {
     setSelectedTypes(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id])
@@ -91,26 +118,98 @@ export default function SendSurvey() {
                 <textarea className="input-field" rows={2} placeholder="Brief description..." value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: 'vertical' }} />
               </div>
 
-              <div style={{ marginBottom: 24 }}>
-                <label className="input-label">Question Types</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 8 }}>
-                  {QUESTION_TYPES.map(q => (
+              {/* AI Recommendations Panel */}
+              {selectedPatient && (
+                <div style={{
+                  background: 'rgba(0, 212, 170, 0.08)',
+                  border: '1px solid rgba(0, 212, 170, 0.25)',
+                  borderRadius: 12,
+                  padding: '16px 18px',
+                  marginBottom: 20
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Sparkles size={18} color="var(--accent)" />
+                      <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--accent)' }}>AI Suggested Questions</span>
+                      <span style={{
+                        fontSize: 11,
+                        background: 'rgba(0,212,170,0.15)',
+                        color: 'var(--accent)',
+                        padding: '2px 8px',
+                        borderRadius: 6,
+                        textTransform: 'uppercase',
+                        fontWeight: 600
+                      }}>
+                        {mlRecs?.mode === 'model' ? 'ML XGBoost' : 'Clinical Rules'}
+                      </span>
+                    </div>
                     <button
-                      key={q.id}
                       type="button"
-                      onClick={() => toggleType(q.id)}
+                      onClick={applyMlSuggestions}
                       style={{
-                        padding: '12px 14px', borderRadius: 10, textAlign: 'left',
-                        background: selectedTypes.includes(q.id) ? 'var(--accent-light)' : 'var(--bg-primary)',
-                        border: `1px solid ${selectedTypes.includes(q.id) ? 'var(--accent)' : 'var(--border)'}`,
-                        color: selectedTypes.includes(q.id) ? 'var(--accent)' : 'var(--text-secondary)',
-                        cursor: 'pointer', transition: 'all 0.2s',
+                        background: 'none',
+                        border: '1px solid var(--accent)',
+                        borderRadius: 6,
+                        color: 'var(--accent)',
+                        fontSize: 12,
+                        padding: '4px 10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        cursor: 'pointer'
                       }}
                     >
-                      <div style={{ fontWeight: 500, fontSize: 13 }}>{q.label}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{q.desc}</div>
+                      <RefreshCw size={12} /> Reset to AI
                     </button>
-                  ))}
+                  </div>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 10 }}>
+                    Auto-selected based on <strong>{mlRecs?.diagnosis || 'patient profile'}</strong> recovery protocol:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {mlRecs?.recommendations?.filter(r => r.selected).map(r => (
+                      <div key={r.id} style={{ fontSize: 12, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>• {r.id.toUpperCase()}:</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{r.reason}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <label className="input-label" style={{ margin: 0 }}>Question Types</label>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{selectedTypes.length} selected</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 8 }}>
+                  {QUESTION_TYPES.map(q => {
+                    const rec = mlRecs?.recommendations?.find(r => r.id === q.id)
+                    return (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => toggleType(q.id)}
+                        style={{
+                          padding: '12px 14px', borderRadius: 10, textAlign: 'left',
+                          background: selectedTypes.includes(q.id) ? 'var(--accent-light)' : 'var(--bg-primary)',
+                          border: `1px solid ${selectedTypes.includes(q.id) ? 'var(--accent)' : 'var(--border)'}`,
+                          color: selectedTypes.includes(q.id) ? 'var(--accent)' : 'var(--text-secondary)',
+                          cursor: 'pointer', transition: 'all 0.2s',
+                          position: 'relative',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ fontWeight: 500, fontSize: 13 }}>{q.label}</div>
+                          {rec?.selected && (
+                            <span style={{ fontSize: 10, color: 'var(--accent)', background: 'rgba(0,212,170,0.15)', padding: '1px 6px', borderRadius: 4 }}>
+                              AI Match
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{q.desc}</div>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 

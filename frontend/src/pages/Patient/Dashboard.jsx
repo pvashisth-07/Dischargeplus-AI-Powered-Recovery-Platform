@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ClipboardList, Pill, MessageSquare, Activity } from 'lucide-react'
+import { ClipboardList, Pill, MessageSquare, Activity, Flame, BellRing } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/shared/Sidebar'
 import ProgressRing from '../../components/charts/ProgressRing'
@@ -11,18 +11,20 @@ export default function PatientDashboard() {
   const [profile, setProfile] = useState(null)
   const [surveys, setSurveys] = useState([])
   const [meds, setMeds] = useState([])
+  const [adherence, setAdherence] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const [p, s, m] = await Promise.all([
+        const [p, s, m, adh] = await Promise.all([
           api.get('/patient/me'),
           api.get('/patient/surveys/pending'),
           api.get('/patient/medications'),
+          api.get('/ml/adherence/me').catch(() => ({ data: null })),
         ])
-        setProfile(p.data); setSurveys(s.data); setMeds(m.data)
+        setProfile(p.data); setSurveys(s.data); setMeds(m.data); setAdherence(adh?.data || null)
       } catch (e) { console.error(e) }
       finally { setLoading(false) }
     }
@@ -43,6 +45,51 @@ export default function PatientDashboard() {
             <h1 className="page-title">Welcome, {profile?.full_name?.split(' ')[0] || 'Patient'} 👋</h1>
             <p className="page-subtitle">Your recovery dashboard</p>
           </div>
+
+          {/* Medication Adherence Reminder Nudge & Streak */}
+          {adherence?.nudge && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                background: adherence.adherence_risk === 'high' ? 'rgba(255, 71, 87, 0.12)' : (adherence.adherence_risk === 'medium' ? 'rgba(255, 165, 2, 0.12)' : 'rgba(0, 212, 170, 0.1)'),
+                border: `1px solid ${adherence.adherence_risk === 'high' ? 'rgba(255, 71, 87, 0.3)' : (adherence.adherence_risk === 'medium' ? 'rgba(255, 165, 2, 0.3)' : 'rgba(0, 212, 170, 0.25)')}`,
+                borderRadius: 12,
+                padding: '12px 18px',
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {adherence.adherence_risk === 'high' || adherence.adherence_risk === 'medium' ? (
+                  <BellRing size={18} color={adherence.adherence_risk === 'high' ? '#FF4757' : '#FFA502'} />
+                ) : (
+                  <Flame size={18} color="#FF6B6B" />
+                )}
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+                  {adherence.nudge}
+                </span>
+              </div>
+              <button
+                onClick={() => navigate('/patient/medications')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--accent)',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Log Doses →
+              </button>
+            </motion.div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 20, marginBottom: 24 }}>
             {/* Recovery Progress */}

@@ -1,0 +1,172 @@
+{
+  "generated_at": "2026-11-21T20:20:03.790287+00:00",
+  "frameworks": {
+    "scikit_learn": "1.9.1",
+    "xgboost": "3.4.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.5"
+  },
+  "models": {
+    "survey_recommender": {
+      "artifact": "survey_recommender.joblib",
+      "version": "1.0.0",
+      "algorithm": "MultiOutputClassifier(XGBoost)",
+      "features": [
+        "age",
+        "days_since_discharge",
+        "expected_recovery_days",
+        "is_male",
+        "diag_diabetes",
+        "diag_cardiac",
+        "diag_post_surgical",
+        "diag_respiratory",
+        "diag_orthopedic",
+        "diag_general",
+        "comorb_hypertension",
+        "comorb_diabetes",
+        "comorb_copd",
+        "comorb_coronary_artery_disease",
+        "comorb_obesity",
+        "comorb_chronic_kidney_disease",
+        "fever_mean",
+        "spo2_mean",
+        "sugar_mean",
+        "pain_mean",
+        "systolic_bp_latest",
+        "high_risk_count",
+        "mean_risk_score"
+      ],
+      "metrics": {
+        "f1_micro": 0.8385,
+        "f1_macro": 0.8134
+      },
+      "checksum": "d671e2da87d92c07"
+    },
+    "readmission_model": {
+      "artifact": "readmission_model.joblib",
+      "version": "1.0.0",
+      "algorithm": "XGBClassifier",
+      "features": [
+        "age",
+        "days_since_discharge",
+        "expected_recovery_days",
+        "is_male",
+        "diag_diabetes",
+        "diag_cardiac",
+        "diag_post_surgical",
+        "diag_respiratory",
+        "diag_orthopedic",
+        "diag_general",
+        "comorb_hypertension",
+        "comorb_diabetes",
+        "comorb_copd",
+        "comorb_coronary_artery_disease",
+        "comorb_obesity",
+        "comorb_chronic_kidney_disease",
+        "fever_latest",
+        "fever_mean",
+        "fever_slope",
+        "spo2_latest",
+        "spo2_mean",
+        "spo2_slope",
+        "systolic_bp_latest",
+        "diastolic_bp_latest",
+        "sugar_latest",
+        "sugar_mean",
+        "pain_latest",
+        "pain_mean",
+        "spo2_declining_consecutive",
+        "pain_spike",
+        "high_risk_count",
+        "last_risk_score",
+        "mean_risk_score",
+        "surveys_completed",
+        "active_med_count",
+        "adherence_rate",
+        "recent_missed"
+      ],
+      "metrics": {
+        "roc_auc": 0.6783,
+        "accuracy": 0.8367,
+        "f1": 0.0755
+      },
+      "checksum": "e7bddb916fe6c17f"
+    },
+    "anomaly_detector": {
+      "artifact": "anomaly_detector.joblib",
+      "version": "1.0.0",
+      "algorithm": "IsolationForest",
+      "features": [
+        "fever_latest",
+        "fever_mean",
+        "fever_slope",
+        "spo2_latest",
+        "spo2_mean",
+        "spo2_slope",
+        "systolic_bp_latest",
+        "diastolic_bp_latest",
+        "sugar_latest",
+        "sugar_mean",
+        "pain_latest",
+        "pain_mean"
+      ],
+      "metrics": {
+        "contamination": 0.1,
+        "n_estimators": 100
+      },
+      "checksum": "7cdb4cffbda46f94"
+    },
+    "risk_classifier": {
+      "artifact": "risk_classifier.joblib",
+      "version": "1.0.0",
+      "algorithm": "XGBClassifier(3-class)",
+      "features": [
+        "fever",
+        "fever_present",
+        "spo2",
+        "spo2_present",
+        "systolic_bp",
+        "diastolic_bp",
+        "bp_present",
+        "sugar",
+        "sugar_present",
+        "pain",
+        "pain_present",
+        "photo_present",
+        "voice_present",
+        "custom_text_present"
+      ],
+      "metrics": {
+        "accuracy": 1.0,
+        "f1_macro": 1.0
+      },
+      "checksum": "e67a621b2f53c00e"
+    },
+    "adherence_predictor": {
+      "artifact": "adherence_model.joblib",
+      "version": "1.0.0",
+      "algorithm": "LogisticRegression",
+      "features": [
+        "age",
+        "days_since_discharge",
+        "active_med_count",
+        "total_med_count",
+        "adherence_rate",
+        "recent_missed",
+        "last_risk_score",
+        "diag_diabetes",
+        "diag_cardiac",
+        "diag_post_surgical",
+        "diag_respiratory",
+        "diag_orthopedic",
+        "diag_general"
+      ],
+      "metrics": {
+        "roc_auc": 0.6513,
+        "accuracy": 0.6267,
+        "f1": 0.4227
+      },
+      "checksum": "dd9751836dc7d803"
+    }
+  }
+}

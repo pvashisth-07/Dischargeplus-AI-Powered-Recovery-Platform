@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, User, Heart, Pill, FileText, MessageSquare } from 'lucide-react'
+import { ArrowLeft, User, Heart, Pill, FileText, MessageSquare, Sparkles, AlertTriangle, TrendingUp, TrendingDown, Activity, CheckCircle2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/shared/Sidebar'
 import RiskBadge from '../../components/shared/RiskBadge'
@@ -17,18 +17,22 @@ export default function PatientDetail() {
   const [loading, setLoading] = useState(true)
   const [addingMed, setAddingMed] = useState(false)
   const [medForm, setMedForm] = useState({ name: '', dosage: '', frequency: '', instructions: '' })
+  const [mlInsights, setMlInsights] = useState(null)
+  const [loadingInsights, setLoadingInsights] = useState(true)
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const [detail, notesRes] = await Promise.all([
+        const [detail, notesRes, insightsRes] = await Promise.all([
           api.get(`/doctor/patients/${id}`),
           api.get(`/doctor/notes/${id}`),
+          api.get(`/ml/patient-insights/${id}`).catch(() => ({ data: null })),
         ])
         setData(detail.data)
         setNotes(notesRes.data.notes || [])
+        setMlInsights(insightsRes?.data || null)
       } catch (e) { console.error(e) }
-      finally { setLoading(false) }
+      finally { setLoading(false); setLoadingInsights(false) }
     }
     fetch()
   }, [id])
@@ -138,6 +142,156 @@ export default function PatientDetail() {
               </div>
             )
           })()}
+
+          {/* ML Clinical Insights Card */}
+          {mlInsights && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-card"
+              style={{
+                padding: 24,
+                marginBottom: 20,
+                border: '1px solid rgba(0, 212, 170, 0.3)',
+                background: 'linear-gradient(135deg, rgba(10, 22, 40, 0.95), rgba(26, 42, 68, 0.85))',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(0,212,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Sparkles size={18} color="var(--accent)" />
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      ML Clinical Insights & Trajectory Analysis
+                      <span style={{ fontSize: 11, background: 'rgba(0,212,170,0.15)', color: 'var(--accent)', padding: '2px 8px', borderRadius: 6, fontWeight: 600 }}>
+                        Active Models
+                      </span>
+                    </h2>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                      Longitudinal trajectory analysis and 30-day readmission risk
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Insights Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 18 }}>
+                {/* 30-Day Readmission Risk & SHAP */}
+                <div style={{ background: 'var(--bg-primary)', padding: 18, borderRadius: 12, border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      30-Day Readmission Risk
+                    </span>
+                    {mlInsights.readmission?.risk_tier && (
+                      <RiskBadge level={mlInsights.readmission.risk_tier} size="sm" />
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
+                    <span style={{ fontSize: 32, fontWeight: 800, color: mlInsights.readmission?.risk_tier === 'high' ? '#FF4757' : (mlInsights.readmission?.risk_tier === 'medium' ? '#FFA502' : '#00D4AA') }}>
+                      {mlInsights.readmission?.percentage != null ? `${mlInsights.readmission.percentage}%` : '—'}
+                    </span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>probability (XGBoost)</span>
+                  </div>
+
+                  {/* Top SHAP Contributors */}
+                  {mlInsights.readmission?.top_contributors?.length > 0 && (
+                    <div>
+                      <p style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '0.5px' }}>
+                        Top SHAP Risk Drivers:
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {mlInsights.readmission.top_contributors.map((c, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)' }}>
+                              {c.direction === 'increasing_risk' ? (
+                                <TrendingUp size={14} color="#FF4757" />
+                              ) : (
+                                <TrendingDown size={14} color="#00D4AA" />
+                              )}
+                              {c.feature}
+                            </span>
+                            <span style={{ fontWeight: 600, color: c.direction === 'increasing_risk' ? '#FF4757' : '#00D4AA' }}>
+                              {c.impact}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trajectory Anomalies & Cohort Comparison */}
+                <div style={{ background: 'var(--bg-primary)', padding: 18, borderRadius: 12, border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                      Trajectory Signals & Cohort Benchmark
+                    </span>
+                    <span style={{
+                      fontSize: 11,
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      fontWeight: 600,
+                      background: mlInsights.anomaly?.is_anomaly ? 'rgba(255,71,87,0.15)' : 'rgba(0,212,170,0.15)',
+                      color: mlInsights.anomaly?.is_anomaly ? '#FF4757' : '#00D4AA',
+                    }}>
+                      {mlInsights.anomaly?.is_anomaly ? 'Anomaly Detected' : 'Stable Baseline'}
+                    </span>
+                  </div>
+
+                  {/* Trend Alerts */}
+                  {mlInsights.anomaly?.trend_alerts?.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                      {mlInsights.anomaly.trend_alerts.map((alert, idx) => (
+                        <div key={idx} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          fontSize: 12,
+                          background: alert.severity === 'critical' || alert.severity === 'high' ? 'rgba(255,71,87,0.1)' : 'rgba(255,165,2,0.1)',
+                          border: `1px solid ${alert.severity === 'critical' || alert.severity === 'high' ? 'rgba(255,71,87,0.3)' : 'rgba(255,165,2,0.3)'}`,
+                          padding: '6px 10px',
+                          borderRadius: 8,
+                          color: alert.severity === 'critical' || alert.severity === 'high' ? '#FF6B6B' : '#FFA502'
+                        }}>
+                          <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+                          <span>{alert.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <CheckCircle2 size={14} color="#00D4AA" /> No abnormal vital trajectory deviations detected.
+                    </p>
+                  )}
+
+                  {/* Cohort Comparison */}
+                  {mlInsights.anomaly?.cohort_comparison && (
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                      <strong>Cohort Benchmark ({mlInsights.anomaly.cohort_comparison.cohort}):</strong> {mlInsights.anomaly.cohort_comparison.summary}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* AI Clinical Summary Narrative */}
+              {mlInsights.clinical_summary && (
+                <div style={{
+                  background: 'rgba(0, 212, 170, 0.05)',
+                  borderLeft: '3px solid var(--accent)',
+                  padding: '12px 16px',
+                  borderRadius: '0 8px 8px 0',
+                }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.5px' }}>
+                    Clinical Synthesis:
+                  </p>
+                  <p style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5, margin: 0 }}>
+                    {mlInsights.clinical_summary}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          )}
 
           {/* Trend Charts Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>

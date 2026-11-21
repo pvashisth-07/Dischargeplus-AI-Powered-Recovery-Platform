@@ -9,6 +9,7 @@ import api from '../../lib/api'
 
 export default function DoctorDashboard() {
   const [patients, setPatients] = useState([])
+  const [adherenceSummary, setAdherenceSummary] = useState({})
   const [search, setSearch] = useState('')
   const [riskFilter, setRiskFilter] = useState('')
   const [loading, setLoading] = useState(true)
@@ -20,8 +21,12 @@ export default function DoctorDashboard() {
         const params = {}
         if (riskFilter) params.risk_filter = riskFilter
         if (search) params.search = search
-        const res = await api.get('/doctor/patients', { params })
+        const [res, adhRes] = await Promise.all([
+          api.get('/doctor/patients', { params }),
+          api.get('/ml/doctor/adherence-summary').catch(() => ({ data: {} })),
+        ])
         setPatients(res.data)
+        setAdherenceSummary(adhRes.data || {})
       } catch (e) { console.error(e) }
       finally { setLoading(false) }
     }
@@ -75,22 +80,36 @@ export default function DoctorDashboard() {
             <div className="glass-card" style={{ overflow: 'hidden' }}>
               <table className="data-table">
                 <thead>
-                  <tr><th>Patient</th><th>Diagnosis</th><th>Risk</th><th>Last Survey</th><th>Days Post-DC</th></tr>
+                  <tr><th>Patient</th><th>Diagnosis</th><th>Risk</th><th>Adherence</th><th>Last Survey</th><th>Days Post-DC</th></tr>
                 </thead>
                 <tbody>
                   {patients.map((p) => {
                     const daysSince = p.discharge_date ? Math.floor((Date.now() - new Date(p.discharge_date)) / 86400000) : '—'
+                    const adh = adherenceSummary[p.id]
                     return (
                       <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/doctor/patient/${p.id}`)}>
                         <td style={{ fontWeight: 500 }}>{p.full_name}</td>
                         <td style={{ color: 'var(--text-secondary)' }}>{p.diagnosis || '—'}</td>
                         <td><RiskBadge level={p.risk_level || 'low'} size="sm" /></td>
+                        <td>
+                          {adh?.adherence_risk === 'high' ? (
+                            <span style={{ fontSize: 11, background: 'rgba(255,71,87,0.15)', color: '#FF4757', padding: '2px 8px', borderRadius: 6, fontWeight: 600 }}>
+                              Miss Risk High
+                            </span>
+                          ) : (adh?.adherence_risk === 'medium' ? (
+                            <span style={{ fontSize: 11, background: 'rgba(255,165,2,0.15)', color: '#FFA502', padding: '2px 8px', borderRadius: 6, fontWeight: 600 }}>
+                              Moderate
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 11, color: '#00D4AA' }}>Good</span>
+                          ))}
+                        </td>
                         <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.last_survey_date ? new Date(p.last_survey_date).toLocaleDateString() : 'Never'}</td>
                         <td>{daysSince}</td>
                       </tr>
                     )
                   })}
-                  {patients.length === 0 && <tr><td colSpan={5} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No patients</td></tr>}
+                  {patients.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No patients</td></tr>}
                 </tbody>
               </table>
             </div>

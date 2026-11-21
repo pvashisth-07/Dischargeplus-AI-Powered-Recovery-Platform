@@ -38,6 +38,14 @@ class Settings(BaseSettings):
     backend_url: str = "https://dischargeplus-ai-powered-recovery.onrender.com"
     environment: str = "development"
 
+    # ML Feature Flags
+    ml_enabled: bool = True
+    ml_survey_recommender: bool = True
+    ml_readmission: bool = True
+    ml_anomaly: bool = True
+    ml_hybrid_risk: bool = True
+    ml_adherence: bool = True
+
     class Config:
         env_file = (str(Path(__file__).resolve().parent / ".env"), ".env")
         env_file_encoding = "utf-8"

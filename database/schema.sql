@@ -665,6 +665,22 @@ CREATE TRIGGER auto_insert_risk_score
 -- Run via Supabase Dashboard or API:
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('hospital-files', 'hospital-files', false);
 
+-- 19. ml_predictions (audit, explainability, continuous learning)
+CREATE TABLE IF NOT EXISTS ml_predictions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    hospital_id UUID REFERENCES hospitals(id) ON DELETE CASCADE,
+    patient_id UUID REFERENCES patients(id) ON DELETE CASCADE,
+    model_name TEXT NOT NULL,
+    model_version TEXT,
+    input_features JSONB,
+    prediction JSONB,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ml_predictions_hospital ON ml_predictions(hospital_id);
+CREATE INDEX IF NOT EXISTS idx_ml_predictions_patient ON ml_predictions(patient_id);
+CREATE INDEX IF NOT EXISTS idx_ml_predictions_created ON ml_predictions(created_at);
+
 -- ============================================================
 -- END OF SCHEMA
 -- ============================================================

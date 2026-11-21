@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 # --- Router Registration ---
-from routers import auth, admin, doctor, patient, survey, ai, chat  # noqa: E402
+from routers import auth, admin, doctor, patient, survey, ai, chat, ml  # noqa: E402
 
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
@@ -38,6 +38,7 @@ app.include_router(patient.router, prefix="/patient", tags=["Patient"])
 app.include_router(survey.router, prefix="/surveys", tags=["Surveys"])
 app.include_router(ai.router, prefix="/ai", tags=["AI"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
+app.include_router(ml.router, prefix="/ml", tags=["Machine Learning"])
 
 
 @app.on_event("startup")
