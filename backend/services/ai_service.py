@@ -1,7 +1,7 @@
 """
 Discharge+ — AI Service
 Groq API integration for survey scoring, report analysis, and patient feedback.
-Uses llama-3.1-8b-instant model (free tier).
+Uses openai/gpt-oss-120b model.
 """
 
 import json
@@ -12,7 +12,7 @@ settings = get_settings()
 
 client = Groq(api_key=settings.groq_api_key) if settings.groq_api_key else None
 
-MODEL = "llama-3.1-8b-instant"
+MODEL = getattr(settings, "groq_model", "openai/gpt-oss-120b")
 
 # ======================== PROMPT CONSTANTS ===================
 

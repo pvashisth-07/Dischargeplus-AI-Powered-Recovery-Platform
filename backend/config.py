@@ -5,6 +5,7 @@ Loads all environment variables via pydantic-settings.
 
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -16,6 +17,7 @@ class Settings(BaseSettings):
 
     # Groq AI
     groq_api_key: str = ""
+    groq_model: str = "openai/gpt-oss-120b"
 
     # SMTP
     smtp_host: str = "smtp.gmail.com"
@@ -37,8 +39,9 @@ class Settings(BaseSettings):
     environment: str = "development"
 
     class Config:
-        env_file = ".env"
+        env_file = (str(Path(__file__).resolve().parent / ".env"), ".env")
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 @lru_cache()

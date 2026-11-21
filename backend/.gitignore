@@ -1,20 +1,44 @@
+# ============================================================
+# Discharge+ — Backend .gitignore
+# ============================================================
+
 # Environment & secrets
 .env
-.env.local
-.env.*.local
+.env.*
+*.env
+!.env.example
+!.env.*.example
 
 # Secret / credential files
 *.pem
 *.key
 *.p12
+*.pfx
+*.crt
 credentials.json
 secrets.json
+service-account*.json
 
-# Python
+# Python & Virtual Environments
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
+.venv/
+ENV/
+env/
 pip_out.txt
 *.egg-info/
+.eggs/
+dist/
+build/
 .pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+*.log

@@ -42,9 +42,9 @@ app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 
 @app.on_event("startup")
 async def startup_event():
-    print(f"🚀 {settings.app_name} backend starting...")
-    print(f"📡 Supabase: {settings.supabase_url}")
-    print(f"🌐 Frontend: {settings.frontend_url}")
+    print(f"{settings.app_name} backend starting...")
+    print(f"Supabase: {settings.supabase_url}")
+    print(f"Frontend: {settings.frontend_url}")
 
 
 @app.get("/", tags=["Health"])
