@@ -16,21 +16,27 @@ export default function DoctorDashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const params = {}
-        if (riskFilter) params.risk_filter = riskFilter
-        if (search) params.search = search
-        const [res, adhRes] = await Promise.all([
-          api.get('/doctor/patients', { params }),
-          api.get('/ml/doctor/adherence-summary').catch(() => ({ data: {} })),
-        ])
-        setPatients(res.data)
+    const params = {}
+    if (riskFilter) params.risk_filter = riskFilter
+    if (search) params.search = search
+
+    // 1. Fetch patient list immediately
+    api.get('/doctor/patients', { params })
+      .then((res) => {
+        setPatients(res.data || [])
+        setLoading(false)
+      })
+      .catch((e) => {
+        console.error(e)
+        setLoading(false)
+      })
+
+    // 2. Fetch ML adherence summary asynchronously in background
+    api.get('/ml/doctor/adherence-summary')
+      .then((adhRes) => {
         setAdherenceSummary(adhRes.data || {})
-      } catch (e) { console.error(e) }
-      finally { setLoading(false) }
-    }
-    fetch()
+      })
+      .catch(() => {})
   }, [riskFilter, search])
 
   const highRisk = patients.filter(p => p.risk_level === 'high')

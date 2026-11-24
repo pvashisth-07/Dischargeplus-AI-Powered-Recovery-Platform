@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.get("/patients", response_model=List[dict])
-async def get_doctor_patients(
+def get_doctor_patients(
     risk_filter: Optional[str] = Query(None, description="Filter by risk level: high, medium, low"),
     search: Optional[str] = Query(None, description="Search by patient name"),
     current_user: CurrentUser = Depends(require_role("doctor")),
@@ -105,7 +105,7 @@ async def get_doctor_patients(
 
 
 @router.get("/patients/{patient_id}", response_model=dict)
-async def get_patient_detail(
+def get_patient_detail(
     patient_id: str,
     current_user: CurrentUser = Depends(require_role("doctor")),
     supabase: Client = Depends(get_supabase_admin),

@@ -4,7 +4,8 @@ Endpoints for patient self-service: profile, pending surveys, medication logging
 """
 
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
-from typing import List
+from typing import List, Optional
+from concurrent.futures import ThreadPoolExecutor
 from dependencies import get_current_user, get_supabase_admin, CurrentUser, require_role
 from models.schemas import MedicationResponse, MedicationLogResponse, MessageResponse, CreateComplaintRequest, ComplaintResponse
 from supabase import Client
@@ -15,7 +16,7 @@ router = APIRouter()
 
 
 @router.get("/me")
-async def get_patient_profile(
+def get_patient_profile(
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -32,20 +33,26 @@ async def get_patient_profile(
     p = patient.data
     user = p.get("users", {}) or {}
 
-    # Get latest risk score
-    risk = supabase.table("risk_scores") \
-        .select("*") \
-        .eq("patient_id", p["id"]) \
-        .order("created_at", desc=True) \
-        .limit(1) \
-        .execute()
+    def q_risk():
+        return supabase.table("risk_scores") \
+            .select("*") \
+            .eq("patient_id", p["id"]) \
+            .order("created_at", desc=True) \
+            .limit(1) \
+            .execute()
 
-    # Get assigned doctor(s)
-    assignments = supabase.table("assignments") \
-        .select("doctors(*, users(full_name, email, avatar_url))") \
-        .eq("patient_id", p["id"]) \
-        .eq("is_active", True) \
-        .execute()
+    def q_assignments():
+        return supabase.table("assignments") \
+            .select("doctors(*, users(full_name, email, avatar_url))") \
+            .eq("patient_id", p["id"]) \
+            .eq("is_active", True) \
+            .execute()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        f_risk = executor.submit(q_risk)
+        f_assign = executor.submit(q_assignments)
+        risk = f_risk.result()
+        assignments = f_assign.result()
 
     doctors = []
     for a in assignments.data or []:
@@ -81,7 +88,7 @@ async def get_patient_profile(
 
 
 @router.get("/surveys/pending")
-async def get_pending_surveys(
+def get_pending_surveys(
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -101,7 +108,7 @@ async def get_pending_surveys(
 
 
 @router.get("/medications", response_model=List[MedicationResponse])
-async def get_medications(
+def get_medications(
     current_user: CurrentUser = Depends(require_role("patient")),
     supabase: Client = Depends(get_supabase_admin),
 ):

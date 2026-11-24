@@ -16,19 +16,27 @@ export default function PatientDashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const [p, s, m, adh] = await Promise.all([
-          api.get('/patient/me'),
-          api.get('/patient/surveys/pending'),
-          api.get('/patient/medications'),
-          api.get('/ml/adherence/me').catch(() => ({ data: null })),
-        ])
-        setProfile(p.data); setSurveys(s.data); setMeds(m.data); setAdherence(adh?.data || null)
-      } catch (e) { console.error(e) }
-      finally { setLoading(false) }
-    }
-    fetch()
+    // 1. Fetch core clinical dashboard info immediately
+    Promise.all([
+      api.get('/patient/me'),
+      api.get('/patient/surveys/pending'),
+      api.get('/patient/medications'),
+    ])
+      .then(([p, s, m]) => {
+        setProfile(p.data)
+        setSurveys(s.data || [])
+        setMeds(m.data || [])
+        setLoading(false)
+      })
+      .catch((e) => {
+        console.error(e)
+        setLoading(false)
+      })
+
+    // 2. Fetch ML adherence forecast non-blocking in background
+    api.get('/ml/adherence/me')
+      .then((adh) => setAdherence(adh?.data || null))
+      .catch(() => {})
   }, [])
 
   const daysSinceDischarge = profile?.discharge_date

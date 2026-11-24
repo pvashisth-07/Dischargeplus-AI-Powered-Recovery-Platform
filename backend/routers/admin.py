@@ -6,6 +6,8 @@ All endpoints scoped to admin's hospital_id.
 
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from typing import List
+import time
+from concurrent.futures import ThreadPoolExecutor
 from dependencies import get_current_user, get_supabase_admin, CurrentUser, require_role
 from models.schemas import (
     CreateDoctorRequest, DoctorResponse, DoctorCredentials,
@@ -23,7 +25,7 @@ router = APIRouter()
 # ======================== DOCTORS ============================
 
 @router.get("/doctors", response_model=List[DoctorResponse])
-async def list_doctors(
+def list_doctors(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -140,7 +142,7 @@ async def delete_doctor(
 # ======================== PATIENTS ===========================
 
 @router.get("/patients", response_model=List[PatientResponse])
-async def list_patients(
+def list_patients(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -341,7 +343,7 @@ async def bulk_import_patients(
 # ======================== ASSIGNMENTS ========================
 
 @router.get("/assignments", response_model=List[AssignmentResponse])
-async def list_assignments(
+def list_assignments(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
@@ -428,33 +430,64 @@ async def delete_assignment(
 
 # ======================== DASHBOARD STATS ====================
 
+_STATS_CACHE = {}  # {hospital_id: (stats_dict, expire_timestamp)}
+
 @router.get("/stats")
-async def get_dashboard_stats(
+def get_dashboard_stats(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):
-    """Get admin dashboard statistics."""
+    """Get admin dashboard statistics with 30s cache and concurrent queries."""
     hid = current_user.hospital_id
+    now = time.time()
 
-    patients = supabase.table("patients").select("id", count="exact").eq("hospital_id", hid).execute()
-    doctors = supabase.table("doctors").select("id", count="exact").eq("hospital_id", hid).execute()
-    high_risk = supabase.table("risk_scores").select("id", count="exact").eq("hospital_id", hid).eq("risk_level", "high").execute()
-    readmissions = supabase.table("patients").select("id", count="exact").eq("hospital_id", hid).eq("is_readmitted", True).execute()
-    surveys = supabase.table("survey_responses").select("id", count="exact").eq("hospital_id", hid).execute()
+    cached = _STATS_CACHE.get(hid)
+    if cached and cached[1] > now:
+        return cached[0]
 
-    return {
-        "total_patients": patients.count or 0,
+    def q_patients():
+        return supabase.table("patients").select("id, is_readmitted").eq("hospital_id", hid).execute()
+
+    def q_doctors():
+        return supabase.table("doctors").select("id", count="exact").eq("hospital_id", hid).execute()
+
+    def q_high_risk():
+        return supabase.table("risk_scores").select("id", count="exact").eq("hospital_id", hid).eq("risk_level", "high").execute()
+
+    def q_surveys():
+        return supabase.table("survey_responses").select("id", count="exact").eq("hospital_id", hid).execute()
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        f_p = executor.submit(q_patients)
+        f_d = executor.submit(q_doctors)
+        f_hr = executor.submit(q_high_risk)
+        f_s = executor.submit(q_surveys)
+
+        p_res = f_p.result()
+        doctors = f_d.result()
+        high_risk = f_hr.result()
+        surveys = f_s.result()
+
+    p_list = p_res.data or []
+    total_patients = len(p_list)
+    readmission_count = sum(1 for p in p_list if p.get("is_readmitted"))
+
+    stats = {
+        "total_patients": total_patients,
         "total_doctors": doctors.count or 0,
         "high_risk_count": high_risk.count or 0,
-        "readmission_count": readmissions.count or 0,
+        "readmission_count": readmission_count,
         "total_survey_responses": surveys.count or 0,
     }
+
+    _STATS_CACHE[hid] = (stats, now + 30.0)  # 30 second TTL
+    return stats
 
 
 # ======================== COMPLAINTS =========================
 
 @router.get("/complaints", response_model=List[ComplaintResponse])
-async def list_complaints(
+def list_complaints(
     current_user: CurrentUser = Depends(require_role("admin")),
     supabase: Client = Depends(get_supabase_admin),
 ):

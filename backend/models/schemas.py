@@ -3,7 +3,7 @@ Discharge+ — Pydantic Request/Response Models
 """
 
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime, date
 from enum import Enum
 
@@ -199,11 +199,20 @@ class AssignmentResponse(BaseModel):
 
 # ======================== SURVEY =============================
 
+class DynamicQuestionItem(BaseModel):
+    id: Optional[str] = None
+    question_text: str
+    question_type: str  # 'choice', 'boolean', 'scale', 'number', 'bp', 'fever', 'spo2', 'sugar', 'pain', 'photo', 'voice', 'text'
+    is_required: bool = True
+    metadata: Optional[Dict[str, Any]] = None
+
+
 class CreateSurveyRequest(BaseModel):
     patient_id: str
     title: str
     description: Optional[str] = None
-    question_types: List[str]  # ['fever','spo2','bp','sugar','pain','photo','voice','custom_text']
+    question_types: Optional[List[str]] = None
+    questions: Optional[List[DynamicQuestionItem]] = None
     schedule_type: str = "one_time"
     schedule_interval_days: Optional[int] = None
     due_date: Optional[str] = None
@@ -225,7 +234,9 @@ class SurveyResponse(BaseModel):
 
 
 class SurveyAnswerItem(BaseModel):
+    question_id: Optional[str] = None
     question_type: str
+    question_text: Optional[str] = None
     answer_value: Optional[str] = None
     answer_numeric: Optional[float] = None
     file_url: Optional[str] = None

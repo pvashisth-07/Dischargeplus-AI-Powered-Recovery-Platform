@@ -64,42 +64,50 @@ export default function Sidebar() {
           left: 0,
           top: 0,
           bottom: 0,
+          height: '100vh',
           width: 260,
           background: '#FFFFFF',
           borderRight: '1px solid var(--border)',
           zIndex: 40,
           display: 'flex',
           flexDirection: 'column',
-          padding: '24px 16px',
+          padding: '20px 16px',
+          overflowY: 'auto',
+          overflowX: 'hidden',
         }}
       >
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px', marginBottom: 40 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 8px', marginBottom: 20, flexShrink: 0 }}>
           <img src="/hospital.jpg" alt="Discharge+ Logo" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover' }} />
           <span style={{ fontSize: 20, fontWeight: 700 }} className="gradient-text">Discharge+</span>
         </div>
 
         {/* Role badge */}
         <div style={{
-          padding: '8px 12px', borderRadius: 8, marginBottom: 24,
+          padding: '8px 12px', borderRadius: 8, marginBottom: 16,
           background: 'var(--accent-light)', fontSize: 12, fontWeight: 600,
           color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px',
-          textAlign: 'center'
+          textAlign: 'center', flexShrink: 0
         }}>
           {role} Portal
         </div>
 
         {/* Nav items */}
-        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto', minHeight: 0, paddingRight: 2 }}>
           {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={() => {
+                if (window.innerWidth < 768 && sidebarOpen) {
+                  toggleSidebar()
+                }
+              }}
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                padding: '11px 14px',
+                padding: '10px 14px',
                 borderRadius: 10,
                 fontSize: 14,
                 fontWeight: isActive ? 600 : 400,
@@ -107,6 +115,7 @@ export default function Sidebar() {
                 background: isActive ? 'var(--accent-light)' : 'transparent',
                 textDecoration: 'none',
                 transition: 'all 0.2s ease',
+                flexShrink: 0,
               })}
             >
               <item.icon size={18} />
@@ -116,11 +125,11 @@ export default function Sidebar() {
         </nav>
 
         {/* User info + logout */}
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16, marginTop: 16 }}>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, marginTop: 14, flexShrink: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, color: 'var(--text-primary)' }}>
             {user?.full_name || 'User'}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, wordBreak: 'break-all' }}>
             {user?.email || ''}
           </div>
           <button

@@ -42,6 +42,13 @@ async def create_survey(
         raise HTTPException(status_code=404, detail="Patient not found in your hospital")
 
     try:
+        # Determine question_types list for surveys table
+        q_types = req.question_types or []
+        if req.questions:
+            q_types = [q.question_type for q in req.questions]
+        if not q_types:
+            q_types = ["custom_text"]
+
         # 1. Create survey
         survey_result = supabase.table("surveys").insert({
             "hospital_id": current_user.hospital_id,
@@ -49,7 +56,7 @@ async def create_survey(
             "patient_id": req.patient_id,
             "title": req.title,
             "description": req.description,
-            "question_types": req.question_types,
+            "question_types": q_types,
             "schedule_type": req.schedule_type,
             "schedule_interval_days": req.schedule_interval_days,
             "due_date": req.due_date,
@@ -61,15 +68,28 @@ async def create_survey(
         survey = survey_result.data[0]
 
         # 2. Create survey questions
-        for i, qt in enumerate(req.question_types):
-            supabase.table("survey_questions").insert({
-                "survey_id": survey["id"],
-                "hospital_id": current_user.hospital_id,
-                "question_type": qt,
-                "question_text": QUESTION_TYPE_MAP.get(qt, f"Please provide your {qt} reading"),
-                "display_order": i,
-                "is_required": qt not in ("photo", "voice", "custom_text"),
-            }).execute()
+        if req.questions:
+            for i, q in enumerate(req.questions):
+                supabase.table("survey_questions").insert({
+                    "survey_id": survey["id"],
+                    "hospital_id": current_user.hospital_id,
+                    "question_type": q.question_type,
+                    "question_text": q.question_text,
+                    "display_order": i,
+                    "is_required": q.is_required,
+                    "metadata": q.metadata or {},
+                }).execute()
+        else:
+            for i, qt in enumerate(q_types):
+                supabase.table("survey_questions").insert({
+                    "survey_id": survey["id"],
+                    "hospital_id": current_user.hospital_id,
+                    "question_type": qt,
+                    "question_text": QUESTION_TYPE_MAP.get(qt, f"Please provide your {qt} reading"),
+                    "display_order": i,
+                    "is_required": qt not in ("photo", "voice", "custom_text"),
+                    "metadata": {},
+                }).execute()
 
         # 3. Notify patient
         supabase.table("notifications").insert({
@@ -103,7 +123,7 @@ async def create_survey(
 
 
 @router.get("/{patient_id}", response_model=List[SurveyResponse])
-async def get_patient_surveys(
+def get_patient_surveys(
     patient_id: str,
     current_user: CurrentUser = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin),
@@ -171,17 +191,23 @@ async def submit_survey_response(
         # 2. Insert individual answers
         answers_for_ai = []
         for answer in req.answers:
-            supabase.table("response_answers").insert({
+            ans_record = {
                 "response_id": response_id,
                 "hospital_id": current_user.hospital_id,
                 "question_type": answer.question_type,
                 "answer_value": answer.answer_value,
                 "answer_numeric": answer.answer_numeric,
                 "file_url": answer.file_url,
-            }).execute()
+            }
+            if answer.question_id:
+                ans_record["question_id"] = answer.question_id
+
+            supabase.table("response_answers").insert(ans_record).execute()
 
             answers_for_ai.append({
+                "question_id": answer.question_id,
                 "question_type": answer.question_type,
+                "question_text": answer.question_text,
                 "answer_value": answer.answer_value,
                 "answer_numeric": answer.answer_numeric,
             })

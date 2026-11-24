@@ -188,7 +188,7 @@ Use these accounts to explore the live platform. Pick any role below and sign in
 
 | Email                                     | Password             |
 | ----------------------------------------- | -------------------- |
-| [admin@aiims.com](mailto:admin@aiims.com) | `Hospital@aiims.com` |
+| [admin@aiims.com](mailto:admin@aiims.com) | `Hospital@aiims` |
 
 
 ### Doctors

@@ -437,23 +437,25 @@ def extract_survey_answer_features(answers: List[Dict[str, Any]]) -> Dict[str, f
             except Exception:
                 num_val = None
 
-        if q_type == "fever":
+        q_text = str(a.get("question_text") or "").lower()
+
+        if q_type == "fever" or ("fever" in q_text or "temp" in q_text):
             if num_val is not None:
                 feats["fever"] = float(num_val)
                 feats["fever_present"] = 1.0
-        elif q_type == "spo2":
+        elif q_type == "spo2" or ("spo2" in q_text or "oxygen" in q_text):
             if num_val is not None:
                 feats["spo2"] = float(num_val)
                 feats["spo2_present"] = 1.0
-        elif q_type == "sugar":
+        elif q_type == "sugar" or ("sugar" in q_text or "glucose" in q_text):
             if num_val is not None:
                 feats["sugar"] = float(num_val)
                 feats["sugar_present"] = 1.0
-        elif q_type == "pain":
+        elif q_type == "pain" or ("pain" in q_text or "discomfort" in q_text):
             if num_val is not None:
                 feats["pain"] = max(0.0, min(10.0, float(num_val)))
                 feats["pain_present"] = 1.0
-        elif q_type == "bp":
+        elif q_type == "bp" or ("blood pressure" in q_text or "systolic" in q_text):
             sys_bp, dia_bp = parse_bp(val_str, num_val)
             feats["systolic_bp"] = sys_bp
             feats["diastolic_bp"] = dia_bp
@@ -464,7 +466,7 @@ def extract_survey_answer_features(answers: List[Dict[str, Any]]) -> Dict[str, f
         elif q_type == "voice":
             if a.get("file_url") or val_str:
                 feats["voice_present"] = 1.0
-        elif q_type == "custom_text":
+        elif q_type in ("custom_text", "text"):
             if val_str and len(str(val_str).strip()) > 0:
                 feats["custom_text_present"] = 1.0
 
