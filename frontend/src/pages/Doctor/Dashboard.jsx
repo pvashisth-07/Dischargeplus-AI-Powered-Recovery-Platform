@@ -81,12 +81,12 @@ export default function DoctorDashboard() {
             </select>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 260px', gap: 18, alignItems: 'start' }}>
             {/* Patient List */}
-            <div className="glass-card" style={{ overflow: 'hidden' }}>
-              <table className="data-table">
+            <div className="glass-card" style={{ overflow: 'hidden', minWidth: 0 }}>
+              <table className="data-table compact" style={{ width: '100%', tableLayout: 'auto' }}>
                 <thead>
-                  <tr><th>Patient</th><th>Diagnosis</th><th>Risk</th><th>Adherence</th><th>Last Survey</th><th>Days Post-DC</th></tr>
+                  <tr><th>Patient</th><th>Diagnosis</th><th>Risk</th><th>Adherence</th><th>Last Survey</th><th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Post-DC</th></tr>
                 </thead>
                 <tbody>
                   {patients.map((p) => {
@@ -110,8 +110,8 @@ export default function DoctorDashboard() {
                             <span style={{ fontSize: 11, color: '#00D4AA' }}>Good</span>
                           ))}
                         </td>
-                        <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.last_survey_date ? new Date(p.last_survey_date).toLocaleDateString() : 'Never'}</td>
-                        <td>{daysSince}</td>
+                        <td style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{p.last_survey_date ? new Date(p.last_survey_date).toLocaleDateString() : 'Never'}</td>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{typeof daysSince === 'number' ? `${daysSince}d` : daysSince}</td>
                       </tr>
                     )
                   })}

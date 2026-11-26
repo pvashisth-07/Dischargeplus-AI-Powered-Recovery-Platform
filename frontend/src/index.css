@@ -232,6 +232,17 @@ body {
 .data-table tr:hover td {
   background: var(--accent-light);
 }
+.data-table.compact th,
+.data-table.compact td {
+  padding: 12px 10px;
+}
+.data-table.compact th {
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+.data-table.compact td {
+  font-size: 13px;
+}
 
 /* Modal overlay */
 .modal-overlay {

@@ -13,7 +13,9 @@ export default function PatientChat() {
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
-    api.get('/patient/me').then(res => setProfile(res.data)).catch(() => {})
+    api.get('/patient/me')
+      .then(res => setProfile(res.data))
+      .catch((err) => console.error('Failed to load patient profile:', err))
   }, [])
 
   const { messages, loading, sendMessage, markRead } = useChat(profile?.id)
@@ -30,19 +32,21 @@ export default function PatientChat() {
     try { await sendMessage(msg) } catch { setInput(msg) }
   }
 
-  const doctorName = profile?.doctors?.[0]?.full_name || 'Your Doctor'
+  const assignedDoctor = profile?.doctors?.[0]
+  const doctorName = assignedDoctor?.full_name || (profile ? 'No Doctor Assigned' : 'Loading...')
+  const doctorSub = assignedDoctor?.specialization || (assignedDoctor ? 'Assigned Doctor' : (profile ? 'Please contact admin for assignment' : ''))
 
   return (
     <div className="page-container">
       <Sidebar />
       <main className="main-content" style={{ padding: 0, display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #00B4D8, #0077B6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600 }}>
-            {doctorName.charAt(0)}
+          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #00B4D8, #0077B6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: '#fff' }}>
+            {doctorName.charAt(0).toUpperCase()}
           </div>
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 600 }}>{doctorName}</h3>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{profile?.doctors?.[0]?.specialization || 'Doctor'}</p>
+            {doctorSub && <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{doctorSub}</p>}
           </div>
         </div>
 
